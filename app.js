@@ -31,17 +31,29 @@ app.get('/', (req, res) => {
    res.sendFile(path.join(__dirname, 'pages/cadastro/cadastro.html'));
 });
 
-// app.get('/login', (req, res) => {
-//    res.sendFile(path.join(__dirname, 'pages/Login/login.html'));
-// });
+app.get('/login', (req, res) => {
+   res.sendFile(path.join(__dirname, 'pages/Login/login.html'));
+});
 
-// app.get('/usuario', (req, res) => {
-//    res.sendFile(path.join(__dirname, 'pages/Usuario/Usuario.html'));
-// });
+app.get('/usuario', (req, res) => {
+   res.sendFile(path.join(__dirname, 'pages/Usuario/Usuario.html'));
+});
 
-// app.get('/administrador', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'pages/Admin/administrador.html'));
-// });
+app.get('/administrador', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pages/Admin/administrador.html'));
+});
+
+app.get('/gerencia', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pages/Admin/gerencia.html'));
+});
+
+app.get('/denuncias', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pages/Admin/administrador.html'));
+});
+
+app.get('/main', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pages/Admin/administrador.html'));
+});
 
 app.listen(8081, function() {
     console.log("Servidor Rodando na url http://localhost:8081");
