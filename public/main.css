@@ -1,0 +1,58 @@
+/* Estilos para a barra de navegação */
+.navbar {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.navbar-nav .nav-link {
+    color: #007bff;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #0056b3;
+}
+
+/* Estilos para o formulário de publicação */
+#formPublicacao {
+    margin-bottom: 20px;
+}
+
+#textoPublicacao {
+    resize: none;
+}
+
+/* Estilos para a lista de publicações */
+#listaPublicacoes {
+    margin-top: 20px;
+}
+
+.card {
+    margin-bottom: 20px;
+}
+
+/* Estilos para a coluna de comentários */
+.card-body {
+    height: 300px; /* Altura fixa para o card de comentários */
+    overflow-y: auto; /* Adiciona uma barra de rolagem vertical se necessário */
+}
+
+/* Estilos gerais */
+.container {
+    max-width: 1200px;
+}
+
+.mt-4 {
+    margin-top: 1.5rem !important;
+}
+
+/* Estilos para responsividade */
+@media (max-width: 768px) {
+    .card-body {
+        height: auto; /* Altera a altura para ajustar em dispositivos menores */
+    }
+}
