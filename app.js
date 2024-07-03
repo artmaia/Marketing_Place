@@ -4,6 +4,7 @@ const mysql = require('mysql2');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const session = require('express-session');
 
 const app = express();
 
@@ -30,6 +31,12 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+app.use(session({
+    secret: 'secreto',
+    resave: false,
+    saveUninitialized: true,
+}));
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
@@ -40,7 +47,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-   res.sendFile(path.join(__dirname, 'pages/Login/login.html'));
+   res.sendFile(path.join(__dirname, 'pages/login/login.html'));
 });
 
 app.get('/usuario', (req, res) => {
@@ -60,7 +67,7 @@ app.get('/denuncias', (req, res) => {
 });
 
 app.get('/main', (req, res) => {
-    res.sendFile(path.join(__dirname, 'pages/Admin/administrador.html'));
+    res.sendFile(path.join(__dirname, 'pages/main/main.html'));
 });
 
 app.get('/cadastro', (req, res) => {
@@ -123,6 +130,8 @@ app.post('/autentication_email', (req, res) => {
     });
 });
 
+
+
 app.post('/criar-conta', async (req, res) => {
     const { token, nome, senha } = req.body;
 
@@ -151,41 +160,68 @@ app.post('/criar-conta', async (req, res) => {
             return res.status(400).send(`Nenhum registro atualizado para o token: ${token}`);
         }
 
-        // Se tudo correu bem, envia resposta de sucesso
-        res.status(200).send('Cadastro completado com sucesso!');
     } catch (erro) {
         console.error('Erro ao completar cadastro: ', erro);
         res.status(500).send('Erro ao completar cadastro');
     }
 });
 
+
 // Login do usuário
-app.post('/login', (req, res) => {
-    const { email, senha } = req.body;
+// app.post('/login', (req, res) => {
+//     const { nome, senha } = req.body;
+    
+//     const query = 'SELECT * FROM usuário WHERE Nome = ?';
+//     conexao.query(query, [nome], async (erro, resultados) => {
+//         if (erro) {
+//             console.error('Erro ao verificar nome: ', erro);
+//             res.status(500).send('Erro ao fazer login');
+//             return;
+//         }
 
-    const query = 'SELECT * FROM usuário WHERE Email = ?';
-    conexao.query(query, [email], async (erro, resultados) => {
-        if (erro) {
-            console.error('Erro ao verificar email: ', erro);
-            res.status(500).send('Erro ao fazer login');
+//         if (resultados.length === 0) {
+//             res.status(400).send('Nome ou senha inválidos');
+//             return;
+//         }
+
+//         const usuario = resultados[0];
+
+//         const senhaValida = await bcrypt.compare(senha, usuario.Senha);
+//         if (!senhaValida) {
+//             res.status(400).send('Nome ou senha inválidos');
+//         } else {
+//             res.status(200).send('Login bem-sucedido');
+//         }
+//     });
+// });
+
+app.post('/login', function(req, res) {
+    const { email, password } = req.body;
+  
+    conexao.query('SELECT * FROM usuário WHERE Email = ?', [email], async function(error, results) {
+        if (error) {
+            console.error('Erro ao verificar credenciais:', error);
+            res.status(500).send('Erro ao processar o login.');
             return;
         }
-
-        if (resultados.length === 0) {
-            res.status(400).send('Email ou senha inválidos');
-            return;
-        }
-
-        const usuario = resultados[0];
-
-        const senhaValida = await bcrypt.compare(senha, usuario.Senha);
-        if (!senhaValida) {
-            res.status(400).send('Email ou senha inválidos');
+        
+        if (results.length > 0) {
+            const usuario = results[0];
+            const senhaValida = await bcrypt.compare(password, usuario.Senha);
+            
+            if (senhaValida) {
+                // Armazenar o ID do usuário na sessão
+                req.session.usuario_id = usuario.ID;
+                res.redirect('/main');
+            } else {
+                res.status(401).send('Credenciais inválidas.');
+            }
         } else {
-            res.status(200).send('Login bem-sucedido');
+            res.status(401).send('Credenciais inválidas.');
         }
     });
 });
+
 
 // Publicar conteúdo
 // app.post('/publicar', upload.single('imagem'), (req, res) => {
