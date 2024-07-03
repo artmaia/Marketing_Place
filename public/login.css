@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #009dff;
+    background-color: #d1d8da;
     margin: 0;
     padding: 0;
     display: flex;
@@ -13,9 +13,12 @@ fieldset{
 }
 fieldset legend{
     text-align: center;
-    background-color: #fff;
-    width: 80px;
+    color: rgb(50, 55, 113);
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+fieldset legend img{
+    width: 100px;
+    justify-content: center;
 }
 label{
     float: left;
@@ -34,31 +37,5 @@ input[type="password"] {
     width: 100%;
     padding: 10px;
     margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
 }
-input[type="submit"] {
-    width: 100%;
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-input[type="submit"]:hover {
-    background-color: #45a049;
-}
-button {
-    margin-top: 10px;
-    border: none;
-    float: right;
-}
-button a {
-    text-decoration: none;
-    color: #000000;
-}
-button a:hover {
-    cursor: pointer;
-}
+
