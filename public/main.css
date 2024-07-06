@@ -9,6 +9,12 @@
     color: #007bff;
 }
 
+#navbarNav {
+    display: flex;
+    justify-content: space-around;
+
+}
+
 .navbar-nav .nav-link {
     color: #007bff;
 }
@@ -48,6 +54,11 @@
 
 .mt-4 {
     margin-top: 1.5rem !important;
+}
+
+#busca {
+    display: flex;
+    flex-direction: row;
 }
 
 /* Estilos para responsividade */

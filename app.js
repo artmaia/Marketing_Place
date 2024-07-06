@@ -5,7 +5,8 @@ const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const session = require('express-session');
-
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 const app = express();
 
 app.use(express.json());
@@ -31,15 +32,15 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
+
 app.use(session({
     secret: 'secreto',
     resave: false,
     saveUninitialized: true,
 }));
-
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
  
 
 app.get('/', (req, res) => {
@@ -53,6 +54,10 @@ app.get('/login', (req, res) => {
 app.get('/usuario', (req, res) => {
    res.sendFile(path.join(__dirname, 'pages/Usuario/Usuario.html'));
 });
+
+app.get('/perfil', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pages/perfil/perfil.html'));
+ });
 
 app.get('/administrador', (req, res) => {
     res.sendFile(path.join(__dirname, 'pages/Admin/administrador.html'));
@@ -93,7 +98,15 @@ app.get('/confirm', (req, res) => {
     });
 });
 
-
+// Configuração do Multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'public/uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
 
 
 // funcionalidades: 
@@ -166,78 +179,175 @@ app.post('/criar-conta', async (req, res) => {
     }
 });
 
+app.post('/excluir-conta', (req, res) => {
+    const id_usuario = req.session.usuario_id;
 
-// Login do usuário
-// app.post('/login', (req, res) => {
-//     const { nome, senha } = req.body;
-    
-//     const query = 'SELECT * FROM usuário WHERE Nome = ?';
-//     conexao.query(query, [nome], async (erro, resultados) => {
-//         if (erro) {
-//             console.error('Erro ao verificar nome: ', erro);
-//             res.status(500).send('Erro ao fazer login');
-//             return;
-//         }
+    if (!id_usuario) {
+        res.status(401).send('Usuário não autenticado');
+        return;
+    }
 
-//         if (resultados.length === 0) {
-//             res.status(400).send('Nome ou senha inválidos');
-//             return;
-//         }
-
-//         const usuario = resultados[0];
-
-//         const senhaValida = await bcrypt.compare(senha, usuario.Senha);
-//         if (!senhaValida) {
-//             res.status(400).send('Nome ou senha inválidos');
-//         } else {
-//             res.status(200).send('Login bem-sucedido');
-//         }
-//     });
-// });
-
-app.post('/login', function(req, res) {
-    const { email, password } = req.body;
-  
-    conexao.query('SELECT * FROM usuário WHERE Email = ?', [email], async function(error, results) {
-        if (error) {
-            console.error('Erro ao verificar credenciais:', error);
-            res.status(500).send('Erro ao processar o login.');
-            return;
-        }
-        
-        if (results.length > 0) {
-            const usuario = results[0];
-            const senhaValida = await bcrypt.compare(password, usuario.Senha);
-            
-            if (senhaValida) {
-                // Armazenar o ID do usuário na sessão
-                req.session.usuario_id = usuario.ID;
-                res.redirect('/main');
-            } else {
-                res.status(401).send('Credenciais inválidas.');
-            }
+    const query = 'DELETE FROM usuário WHERE ID_Usuário = ?';
+    conexao.query(query, [id_usuario], (erro, resultados) => {
+        if (erro) {
+            console.error('Erro ao excluir conta: ', erro);
+            res.status(500).send('Erro ao excluir conta');
         } else {
-            res.status(401).send('Credenciais inválidas.');
+            // Limpa a sessão após excluir a conta
+            req.session.destroy((err) => {
+                if (err) {
+                    console.error('Erro ao destruir sessão após excluir conta:', err);
+                    res.status(500).send('Erro ao excluir conta');
+                } else {
+                    res.status(200).send('Conta excluída com sucesso!');
+                }
+            });
         }
     });
 });
 
+app.post('/login-conta', async function(req, res) {
+    const { email, password } = req.body;
+
+    console.log('Corpo da requisição:', req.body); // Adiciona log para depuração
+    console.log('Email recebido:', email); // Verifica o email recebido
+    console.log('Password recebido:', password); // Verifica a senha recebida
+
+    try {
+        if (!email || !password) {
+            console.log('Email ou senha não fornecidos'); // Adiciona log para email ou senha ausentes
+            return res.status(400).send('Email ou senha não fornecidos');
+        }
+
+        // Consulta para buscar o usuário pelo email
+        const [results] = await conexao.promise().query('SELECT * FROM usuário WHERE Email = ?', [email.trim()]);
+        console.log('Resultados da consulta:', results); // Verifica os resultados da consulta
+
+        if (results.length > 0) {
+            const usuario = results[0];
+            console.log('Usuário encontrado:', usuario); // Verifica o usuário encontrado
+
+            // Comparar a senha usando bcrypt
+            const senhaValida = await bcrypt.compare(password, usuario.Senha);
+            console.log('Senha válida:', senhaValida); // Verifica a comparação de senha
+
+            if (senhaValida) {
+                req.session.usuario_id = usuario['ID_Usuário'];
+                console.log('ID do usuário na sessão:', req.session.usuario_id); // Verifica se o ID do usuário está sendo armazenado corretamente
+                res.redirect('/main');
+            } else {
+                console.log('Senha incorreta'); // Adiciona log para senha incorreta
+                res.status(401).send('Credenciais inválidas: Senha incorreta.');
+            }
+        } else {
+            console.log('Email não encontrado'); // Adiciona log para email não encontrado
+            res.status(401).send('Credenciais inválidas: Email não encontrado.');
+        }
+    } catch (error) {
+        console.error('Erro ao verificar credenciais:', error);
+        res.status(500).send('Erro ao processar o login.');
+    }
+});
+
+
+
+
+
 
 // Publicar conteúdo
-// app.post('/publicar', upload.single('imagem'), (req, res) => {
-//     const { id_usuario, titulo, conteudo } = req.body;
-//     const imagem = req.file ? req.file.filename : null;
+app.post('/publicar', upload.single('imagem'), (req, res) => {
+    try {
+        const { titulo } = req.body;
+        const imagem = req.file ? req.file.filename : null;
+        const id_usuario = req.session.usuario_id;
 
-//     const query = 'INSERT INTO Publicação (ID_Usuário, Título, Conteúdo, Data_Publicação, Status, Imagem) VALUES (?, ?, ?, NOW(), "Ativa", ?)';
-//     conexao.query(query, [id_usuario, titulo, conteudo, imagem], (erro, resultados) => {
-//         if (erro) {
-//             console.error('Erro ao publicar conteúdo: ', erro);
-//             res.status(500).send('Erro ao publicar conteúdo');
-//         } else {
-//             res.status(200).send('Publicação criada com sucesso!');
-//         }
-//     });
-// });
+        console.log('ID do usuário na sessão:', id_usuario);
+        console.log('Título da publicação:', titulo);
+
+
+        if (!id_usuario || !titulo) {
+            return res.status(400).send('Parâmetros inválidos');
+        }
+
+        const inserePublicacaoQuery = 'INSERT INTO publicação (ID_Usuário, Título, Imagem, Data_Publicação, Status) VALUES (?, ?, ?, NOW(), "Ativa")';
+        const values = [id_usuario, titulo, imagem];
+
+        conexao.query(inserePublicacaoQuery, values, (erro, resultados) => {
+            if (erro) {
+                console.error('Erro ao publicar conteúdo: ', erro);
+                return res.status(500).send('Erro ao publicar conteúdo');
+            }
+
+            console.log('Publicação criada com sucesso!');
+            res.status(200).send('Publicação criada com sucesso!');
+        });
+    } catch (erro) {
+        console.error('Erro ao processar requisição:', erro);
+        res.status(500).send('Erro ao processar requisição');
+    }
+});
+
+// Rota para visualizar publicações
+app.get('/publicacoes', async (req, res) => {
+    try {
+        const query = `
+            SELECT p.ID_Publicação, p.Título, p.Imagem, p.Data_Publicação, u.Nome AS Autor
+            FROM publicação p
+            JOIN usuário u ON p.ID_Usuário = u.ID_Usuário
+            WHERE p.Status = 'Ativa'
+            ORDER BY p.Data_Publicação DESC
+        `;
+
+        const [resultados] = await conexao.promise().query(query);
+
+        if (resultados.length > 0) {
+            res.status(200).json(resultados);
+        } else {
+            res.status(404).send('Nenhuma publicação encontrada.');
+        }
+    } catch (erro) {
+        console.error('Erro ao buscar publicações: ', erro);
+        res.status(500).send('Erro ao buscar publicações');
+    }
+});
+
+app.post('/editar-perfil', async (req, res) => {
+    const { nome, email, senhaAtual, novaSenha } = req.body;
+    const id_usuario = req.session.usuario_id;
+
+    try {
+        if (!id_usuario) {
+            throw new Error('Usuário não autenticado');
+        }
+        const [usuario] = await conexao.execute('SELECT * FROM usuário WHERE ID_Usuário = ?', [id_usuario]);
+        if (!usuario) {
+            throw new Error('Usuário não encontrado');
+        }
+
+        const senhaValida = await bcrypt.compare(senhaAtual, usuario.Senha);
+        if (!senhaValida) {
+            throw new Error('Senha atual incorreta');
+        }
+
+        let hashedPassword = null;
+        if (novaSenha) {
+            hashedPassword = await bcrypt.hash(novaSenha, 10);
+        }
+
+        const updateQuery = 'UPDATE usuário SET Nome = ?, Email = ?, Senha = ? WHERE ID_Usuário = ?';
+        const [resultados] = await conexao.execute(updateQuery, [nome, email, hashedPassword || usuario.Senha, id_usuario]);
+
+        if (resultados.affectedRows === 1) {
+            res.status(200).send('Perfil atualizado com sucesso!');
+        } else {
+            res.status(500).send('Erro ao atualizar perfil');
+        }
+    } catch (erro) {
+        console.error('Erro ao editar perfil: ', erro);
+        res.status(500).send('Erro ao editar perfil');
+    }
+});
+
 
 // Adicionar comentário
 app.post('/comentar', (req, res) => {

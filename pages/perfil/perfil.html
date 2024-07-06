@@ -3,9 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tela de perfil</title>
+    <title>Perfil do Usuário</title>
+    <style>
+        /* Estilos simples para a página */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label, input {
+            display: block;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    
+    <div class="container">
+        <h1>Perfil do Usuário</h1>
+        <form id="editarForm" action="/editar-perfil" method="POST">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" value="<%= usuario.nome %>" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="<%= usuario.email %>" required disabled>
+
+            <p>Data de Cadastro: <%= usuario.dataCadastro %></p>
+
+            <button type="button" onclick="habilitarEdicao()">Editar Nome</button>
+            <button type="submit">Salvar Alterações</button>
+        </form>
+
+        <form id="editarSenhaForm" action="/editar-senha" method="POST">
+            <button type="button" onclick="abrirEditarSenha()">Editar Senha</button>
+        </form>
+
+        <form id="excluirForm" action="/excluir-conta" method="POST">
+            <button type="submit" onclick="return confirm('Tem certeza que deseja excluir sua conta?')">Excluir Conta</button>
+        </form>
+    </div>
+
+    <script>
+        function habilitarEdicao() {
+            document.getElementById('nome').removeAttribute('disabled');
+        }
+
+        function abrirEditarSenha() {
+            window.open('/editar-senha', '_blank');
+        }
+    </script>
 </body>
 </html>
