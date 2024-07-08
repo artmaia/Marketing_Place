@@ -21,9 +21,13 @@
         form {
             margin-bottom: 20px;
         }
-        label, input {
+        label, input, button {
             display: block;
             margin-bottom: 10px;
+        }
+        .form-group {
+            display: flex;
+            align-items: center;
         }
         button {
             padding: 10px 20px;
@@ -31,45 +35,136 @@
             color: white;
             border: none;
             cursor: pointer;
+            margin-left: 10px;
         }
         button:hover {
             background-color: #0056b3;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Perfil do Usuário</h1>
-        <form id="editarForm" action="/editar-perfil" method="POST">
-            <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" value="<%= usuario.nome %>" required>
-
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<%= usuario.email %>" required disabled>
-
-            <p>Data de Cadastro: <%= usuario.dataCadastro %></p>
-
-            <button type="button" onclick="habilitarEdicao()">Editar Nome</button>
-            <button type="submit">Salvar Alterações</button>
+        <form id="editarForm" action="/editar-nome" method="POST">
+            <div class="form-group">
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" name="nome" value="" required disabled>
+                <button type="button" onclick="habilitarEdicao('nome')">Editar Nome</button>
+                <button type="submit" style="display: none;">Salvar</button>
+            </div>
         </form>
 
-        <form id="editarSenhaForm" action="/editar-senha" method="POST">
-            <button type="button" onclick="abrirEditarSenha()">Editar Senha</button>
+        <form id="editarEmailForm" action="/editar-email" method="POST">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="" required disabled>
+                <button type="button" onclick="habilitarEdicao('email')">Editar Email</button>
+                <button type="submit" style="display: none;">Salvar</button>
+            </div>
         </form>
+
+        <p>Data de Cadastro: <span id="dataCadastro"></span></p>
+
+        <!-- Modal para mudança de senha -->
+        <div id="editarSenhaModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="fecharEditarSenhaModal()">&times;</span>
+                <h2>Editar Senha</h2>
+                <form id="editarSenhaForm" action="/editar-senha" method="POST">
+                    <label for="senhaAtual">Senha Atual:</label>
+                    <input type="password" id="senhaAtual" name="senhaAtual" required>
+
+                    <label for="novaSenha">Nova Senha:</label>
+                    <input type="password" id="novaSenha" name="novaSenha" required>
+
+                    <button type="submit">Salvar</button>
+                </form>
+            </div>
+        </div>
 
         <form id="excluirForm" action="/excluir-conta" method="POST">
             <button type="submit" onclick="return confirm('Tem certeza que deseja excluir sua conta?')">Excluir Conta</button>
+            <button type="button" onclick="abrirEditarSenhaModal()">Mudar Senha</button>
         </form>
     </div>
 
     <script>
-        function habilitarEdicao() {
-            document.getElementById('nome').removeAttribute('disabled');
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/usuario');
+                const usuario = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('nome').value = usuario.Nome;
+                    document.getElementById('email').value = usuario.Email;
+
+                    // Verifica se a data de cadastro é válida
+                    const dataCadastro = new Date(usuario.Data_Cadastro);
+                    if (!isNaN(dataCadastro.getTime())) {
+                        const dia = String(dataCadastro.getDate()).padStart(2, '0');
+                        const mes = String(dataCadastro.getMonth() + 1).padStart(2, '0');
+                        const ano = dataCadastro.getFullYear();
+                        const dataFormatada = `${dia}/${mes}/${ano}`;
+                        document.getElementById('dataCadastro').textContent = dataFormatada;
+                    } else {
+                        console.error('Data de cadastro inválida:', usuario.Data_Cadastro);
+                        document.getElementById('dataCadastro').textContent = 'Data de cadastro inválida';
+                    }
+                } else {
+                    console.error('Erro ao carregar dados do perfil:', response.status);
+                    throw new Error('Erro ao carregar dados do perfil');
+                }
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                alert('Erro na requisição. Por favor, tente novamente mais tarde.');
+            }
+        });
+
+        function habilitarEdicao(campo) {
+            const campoInput = document.getElementById(campo);
+            campoInput.removeAttribute('disabled');
+            const salvarButton = campoInput.parentElement.querySelector('button[type="submit"]');
+            salvarButton.style.display = 'block';
         }
 
-        function abrirEditarSenha() {
-            window.open('/editar-senha', '_blank');
+        function abrirEditarSenhaModal() {
+            document.getElementById('editarSenhaModal').style.display = 'block';
         }
+
+        function fecharEditarSenhaModal() {
+            document.getElementById('editarSenhaModal').style.display = 'none';
+        }
+
     </script>
 </body>
 </html>

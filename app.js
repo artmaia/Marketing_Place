@@ -41,8 +41,33 @@ app.use(session({
     resave: false,
     saveUninitialized: true,
 }));
- 
 
+function verificarAutenticacao(req, res, next) {
+    if (req.session.usuario_id) {
+        next();
+    } else {
+        res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+}
+
+app.get('/api/usuario', verificarAutenticacao, async (req, res) => {
+    const userId = req.session.usuario_id;
+
+    try {
+        const [resultados] = await conexao.promise().query('SELECT * FROM usuário WHERE ID_Usuário = ?', [userId]);
+
+        if (resultados.length === 0) {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+        const usuario = resultados[0];
+        res.json(usuario);
+    } catch (erro) {
+        console.error('Erro ao obter dados do usuário: ', erro);
+        res.status(500).json({ message: 'Erro ao obter dados do usuário' });
+    }
+});
+ 
 app.get('/', (req, res) => {
    res.sendFile(path.join(__dirname, 'pages/cadastro/cadastro.html'));
 });
@@ -57,7 +82,7 @@ app.get('/usuario', (req, res) => {
 
 app.get('/perfil', (req, res) => {
     res.sendFile(path.join(__dirname, 'pages/perfil/perfil.html'));
- });
+});
 
 app.get('/administrador', (req, res) => {
     res.sendFile(path.join(__dirname, 'pages/Admin/administrador.html'));
@@ -311,14 +336,66 @@ app.get('/publicacoes', async (req, res) => {
     }
 });
 
-app.post('/editar-perfil', async (req, res) => {
-    const { nome, email, senhaAtual, novaSenha } = req.body;
+// Rotas para editar dados do usuário
+app.post('/editar-nome', (req, res) => {
+    const { nome } = req.body;
+    const id_usuario = req.session.usuario_id;
+
+    if (!id_usuario) {
+        return res.status(401).send('Usuário não autenticado');
+    }
+
+    // Atualiza o nome do usuário na tabela 'usuário'
+    const updateQuery = 'UPDATE usuário SET Nome = ? WHERE ID_Usuário = ?';
+    conexao.execute(updateQuery, [nome, id_usuario], (err, resultados) => {
+        if (err) {
+            console.error('Erro ao editar nome:', err);
+            return res.status(500).send('Erro ao editar nome');
+        }
+
+        if (resultados.affectedRows === 1) {
+            res.redirect('/perfil');
+        } else {
+            res.status(500).send('Erro ao atualizar nome');
+        }
+    });
+});
+
+app.post('/editar-email', (req, res) => {
+    const { email } = req.body;
+    const id_usuario = req.session.usuario_id;
+
+    if (!id_usuario) {
+        return res.status(401).send('Usuário não autenticado');
+    }
+
+    // Atualiza o email do usuário na tabela 'usuário'
+    const updateQuery = 'UPDATE usuário SET Email = ? WHERE ID_Usuário = ?';
+    conexao.execute(updateQuery, [email, id_usuario], (err, resultados) => {
+        if (err) {
+            console.error('Erro ao editar email:', err);
+            return res.status(500).send('Erro ao editar email');
+        }
+
+        if (resultados.affectedRows === 1) {
+            res.redirect('/perfil');
+        } else {
+            res.status(500).send('Erro ao atualizar email');
+        }
+    });
+});
+
+
+
+app.post('/editar-senha', async (req, res) => {
+    const { senhaAtual, novaSenha } = req.body;
     const id_usuario = req.session.usuario_id;
 
     try {
         if (!id_usuario) {
             throw new Error('Usuário não autenticado');
         }
+        
         const [usuario] = await conexao.execute('SELECT * FROM usuário WHERE ID_Usuário = ?', [id_usuario]);
         if (!usuario) {
             throw new Error('Usuário não encontrado');
@@ -329,24 +406,22 @@ app.post('/editar-perfil', async (req, res) => {
             throw new Error('Senha atual incorreta');
         }
 
-        let hashedPassword = null;
-        if (novaSenha) {
-            hashedPassword = await bcrypt.hash(novaSenha, 10);
-        }
+        const hashedPassword = await bcrypt.hash(novaSenha, 10);
 
-        const updateQuery = 'UPDATE usuário SET Nome = ?, Email = ?, Senha = ? WHERE ID_Usuário = ?';
-        const [resultados] = await conexao.execute(updateQuery, [nome, email, hashedPassword || usuario.Senha, id_usuario]);
+        const updateQuery = 'UPDATE usuário SET Senha = ? WHERE ID_Usuário = ?';
+        const [resultados] = await conexao.execute(updateQuery, [hashedPassword, id_usuario]);
 
         if (resultados.affectedRows === 1) {
-            res.status(200).send('Perfil atualizado com sucesso!');
+            res.status(200).send('Senha atualizada com sucesso!');
         } else {
-            res.status(500).send('Erro ao atualizar perfil');
+            res.status(500).send('Erro ao atualizar senha');
         }
     } catch (erro) {
-        console.error('Erro ao editar perfil: ', erro);
-        res.status(500).send('Erro ao editar perfil');
+        console.error('Erro ao editar senha: ', erro);
+        res.status(500).send('Erro ao editar senha');
     }
 });
+
 
 
 // Adicionar comentário
