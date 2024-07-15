@@ -7,6 +7,9 @@
     <title>Menu</title>
     <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="main.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        integrity="sha512-123455667890=" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body>
@@ -23,14 +26,14 @@
                         <a class="nav-link" href="/">Página Inicial</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Minhas Publicações</a>
+                        <a class="nav-link" href="/minhasPublicacoes">Minhas Publicações</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/perfil">Perfil</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Sair</a>
-                    </li>
+                        <a class="nav-link" href="#" onclick="logout()">Sair</a>
+                    </li>                    
                 </ul>
             </div>
             <div>
@@ -42,7 +45,7 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <div class="container">
         <div class="row">
             <!-- Coluna de Publicações -->
             <div class="col-md-8">
@@ -50,7 +53,8 @@
                 <form id="formPublicacao" enctype="multipart/form-data" action="/publicar" method="POST">
                     <input type="hidden" id="id_usuario" name="id_usuario"> <!-- Aqui você deve passar o ID do usuário logado -->
                     <div class="form-group">
-                        <input type="text" class="form-control" id="tituloPublicacao" name="titulo" placeholder="Título da publicação">
+                        <input type="text" class="form-control" id="tituloPublicacao" name="titulo"
+                            placeholder="Título da publicação">
                     </div>
                     <div class="form-group">
                         <input type="file" class="form-control-file" id="imagemPublicacao" name="imagem">
@@ -60,15 +64,74 @@
 
                 <!-- Lista de Publicações -->
                 <div class="mt-4" id="listaPublicacoes">
-                    <!-- Aqui serão listadas as publicações dinamicamente -->
+                    <!-- Exemplo de card de publicação -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Título da Publicação</h5>
+                            <p class="card-text">Autor: Nome do Autor</p>
+                            <!-- Botão para abrir modal de comentários -->
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalComentarios"
+                                onclick="carregarComentarios(1)">
+                                <i class="far fa-comments"></i> Comentários
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Fim do exemplo de card de publicação -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de Comentários -->
+    <div class="modal fade" id="modalComentarios" tabindex="-1" role="dialog" aria-labelledby="modalComentariosLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalComentariosLabel">Comentários</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Lista de Comentários -->
+                    <ul class="list-group" id="listaComentarios">
+                        <!-- Os comentários serão adicionados dinamicamente aqui -->
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <form id="formComentario">
+                        <input type="hidden" id="id_publicacao_comentario" name="id_publicacao">
+                        <div class="form-group">
+                            <textarea class="form-control" id="conteudoComentario" name="conteudo"
+                                placeholder="Escreva seu comentário..." rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Comentar</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function logout() {
+            fetch('/logout', {
+                method: 'POST',
+                credentials: 'include', // Envia cookies com a requisição
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Redireciona para a página de login ou inicial
+                    window.location.href = '/login';
+                } else {
+                    alert('Erro ao fazer logout. Tente novamente.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro na requisição de logout:', error);
+                alert('Erro na requisição. Por favor, tente novamente mais tarde.');
+            });
+        }
+
         async function fetchPublicacoes() {
             try {
                 const response = await fetch('/publicacoes');
@@ -103,15 +166,75 @@
                         <p class="card-text">Por: ${pub.Autor}</p>
                         <p class="card-text"><small class="text-muted">Data: ${new Date(pub.Data_Publicação).toLocaleDateString()}</small></p>
                         ${imagemHTML}
+                        <!-- Botão para abrir modal de comentários -->
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalComentarios"
+                            onclick="carregarComentarios(${pub.ID})">
+                            <i class="far fa-comments"></i> Comentários
+                        </button>
                     </div>
                 `;
                 container.appendChild(pubElement);
             });
         }
 
+        async function carregarComentarios(id_publicacao) {
+            const response = await fetch(`/comentarios/${id_publicacao}`);
+            if (!response.ok) {
+                console.error('Erro ao carregar comentários');
+                return;
+            }
+            const comentarios = await response.json();
+            const listaComentarios = document.getElementById('listaComentarios');
+            listaComentarios.innerHTML = '';
 
+            comentarios.forEach(comentario => {
+                const comentarioElement = document.createElement('li');
+                comentarioElement.classList.add('list-group-item');
+                comentarioElement.innerHTML = `
+                    <strong>${comentario.Usuario}</strong>: ${comentario.Conteudo}
+                    <span class="badge badge-secondary">${new Date(comentario.Data_Comentario).toLocaleString()}</span>
+                `;
+                listaComentarios.appendChild(comentarioElement);
+            });
+
+            // Define o ID da publicação no formulário de comentário
+            document.getElementById('id_publicacao_comentario').value = id_publicacao;
+        }
+
+        // Enviar comentário
+        document.getElementById('formComentario').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/comentar', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao adicionar comentário');
+                }
+
+                // Recarrega os comentários após adicionar um novo
+                const id_publicacao = formData.get('id_publicacao');
+                carregarComentarios(id_publicacao);
+
+                // Limpa o campo de texto do comentário
+                document.getElementById('conteudoComentario').value = '';
+
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        });
+
+        // Event listener para carregar publicações ao carregar a página
         document.addEventListener('DOMContentLoaded', fetchPublicacoes);
     </script>
+
+    <!-- Bootstrap JS -->
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 
 </html>

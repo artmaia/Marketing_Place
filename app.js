@@ -80,6 +80,50 @@ app.get('/usuario', (req, res) => {
    res.sendFile(path.join(__dirname, 'pages/Usuario/Usuario.html'));
 });
 
+app.get('/minhasPublicacoes', verificarAutenticacao, async (req, res) => {
+    const userId = req.session.usuario_id;
+
+    try {
+        const publicacoesUsuario = await buscarPublicacoesDoUsuario(userId);
+
+        // Enviar arquivo HTML estático
+        res.sendFile(path.join(__dirname, 'pages/usuarioPublicacao/minhasPublicacoes.html'));
+    } catch (error) {
+        console.error('Erro ao carregar publicações do usuário:', error);
+        res.status(500).send('Erro ao carregar publicações do usuário');
+    }
+});
+
+// Função para buscar publicações do usuário
+async function buscarPublicacoesDoUsuario(userId) {
+    try {
+        const query = 'SELECT p.ID_Publicação, p.Título, p.Imagem, p.Data_Publicação, u.Nome AS Autor FROM publicação p JOIN usuário u ON p.ID_Usuário = u.ID_Usuário WHERE p.ID_Usuário = ? ORDER BY p.Data_Publicação DESC';
+        const [resultados] = await conexao.promise().query(query, [userId]);
+        return resultados;
+    } catch (error) {
+        console.error('Erro ao buscar publicações do usuário:', error);
+        throw error;
+    }
+}
+
+
+app.get('/api/publicacoes', async (req, res) => {
+    const idUsuario = req.session.usuario_id; // Obtém o ID do usuário autenticado da sessão
+
+    const query = 'SELECT * FROM publicação WHERE ID_usuário = ? ORDER BY Data_Publicação DESC';
+    conexao.execute(query, [idUsuario], (error, results, fields) => {
+        if (error) {
+            console.error('Erro ao obter publicações do usuário:', error);
+            res.status(500).send('Erro ao obter publicações do usuário');
+            return;
+        }
+        
+        res.json(results);
+    });
+});
+
+
+
 app.get('/perfil', (req, res) => {
     res.sendFile(path.join(__dirname, 'pages/perfil/perfil.html'));
 });
@@ -274,10 +318,15 @@ app.post('/login-conta', async function(req, res) {
     }
 });
 
-
-
-
-
+app.post('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.status(500).send('Erro ao encerrar a sessão');
+        }
+        res.clearCookie('connect.sid'); // Limpa o cookie da sessão
+        res.status(200).send('Logout realizado com sucesso');
+    });
+});
 
 // Publicar conteúdo
 app.post('/publicar', upload.single('imagem'), (req, res) => {
