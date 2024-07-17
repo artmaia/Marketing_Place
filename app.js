@@ -122,6 +122,18 @@ app.get('/api/publicacoes', async (req, res) => {
     });
 });
 
+app.get('/comentarios/:id_publicacao', (req, res) => {
+    const id_publicacao = req.params.id_publicacao;
+    const query = 'SELECT * FROM comentário WHERE ID_Publicação = ?';
+    
+    conexao.query(query, [id_publicacao], (erro, resultados) => {
+        if (erro) {
+            console.error('Erro ao buscar comentários: ', erro);
+            return res.status(500).send('Erro ao buscar comentários');
+        }
+        res.json(resultados);
+    });
+});
 
 
 app.get('/perfil', (req, res) => {
@@ -471,38 +483,58 @@ app.post('/editar-senha', async (req, res) => {
     }
 });
 
-
-
 // Adicionar comentário
-app.post('/comentar', (req, res) => {
-    const { id_publicacao, id_usuario, conteudo } = req.body;
+// app.post('/comentar', async (req, res) => {
+//     const { id_publicacao, comentario } = req.body;
+//     const id_usuario = req.session.usuario_id;
 
-    const query = 'INSERT INTO Comentário (ID_Publicação, ID_Usuário, Conteúdo, Data_Comentário) VALUES (?, ?, ?, NOW())';
-    conexao.query(query, [id_publicacao, id_usuario, conteudo], (erro, resultados) => {
-        if (erro) {
-            console.error('Erro ao adicionar comentário: ', erro);
-            res.status(500).send('Erro ao adicionar comentário');
-        } else {
-            res.status(200).send('Comentário adicionado com sucesso!');
-        }
-    });
+//     if (!id_publicacao || !id_usuario || !comentario) {
+//         return res.status(400).send('Valores não podem ser nulos');
+//     }
+
+//     try {
+//         await conexao.query('INSERT INTO comentário (ID_Publicação, ID_Usuário, Comentário, Data_Comentário) VALUES (?, ?, ?, NOW())', [id_publicacao, id_usuario, comentario]);
+//         res.status(201).send('Comentário adicionado com sucesso');
+//     } catch (error) {
+//         console.error('Erro ao adicionar comentário:', error);
+//         res.status(500).send('Erro ao adicionar comentário');
+//     }
+// });
+
+app.post('/comentar', async (req, res) => {
+    const { id_publicacao, comentario } = req.body;
+    const id_usuario = req.session.usuario_id;
+
+    if (!id_publicacao || !comentario || !id_usuario) {
+        return res.status(400).json({ error: 'ID da publicação, comentário e ID do usuário são obrigatórios.' });
+    }
+
+    try {
+        await conexao.promise().query(
+            'INSERT INTO comentário (ID_Publicação, ID_Usuário, Comentario, Data_Comentário) VALUES (?, ?, ?, NOW())',
+            [id_publicacao, id_usuario, comentario]
+        );
+        res.status(201).json({ message: 'Comentário adicionado com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao adicionar comentário:', error);
+        res.status(500).json({ error: 'Erro ao adicionar comentário' });
+    }
 });
 
-// Denunciar publicação
-app.post('/denunciar', (req, res) => {
+
+app.post('/denunciar', verificarAutenticacao, (req, res) => {
     const { id_publicacao, id_usuario, motivo } = req.body;
+    const dataDenuncia = new Date();
 
-    const query = 'INSERT INTO Denúncia (ID_Publicação, ID_Usuário, Motivo, Data_Denúncia, Status) VALUES (?, ?, ?, NOW(), "Pendente")';
-    conexao.query(query, [id_publicacao, id_usuario, motivo], (erro, resultados) => {
+    const query = 'INSERT INTO denúncia (ID_Publicação, ID_Usuário, Motivo, Data_Denúncia) VALUES (?, ?, ?, ?)';
+    conexao.query(query, [id_publicacao, id_usuario, motivo, dataDenuncia], (erro, resultados) => {
         if (erro) {
-            console.error('Erro ao denunciar publicação: ', erro);
-            res.status(500).send('Erro ao denunciar publicação');
-        } else {
-            res.status(200).send('Denúncia registrada com sucesso!');
+            console.error('Erro ao registrar denúncia:', erro);
+            return res.status(500).send('Erro ao registrar denúncia');
         }
+        res.send('Denúncia registrada com sucesso');
     });
 });
-
 
 
 app.listen(8081, function() {
