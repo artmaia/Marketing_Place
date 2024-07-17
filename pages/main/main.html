@@ -84,6 +84,33 @@
         </div>
     </div>
 
+    <!-- Modal de Comentários -->
+    <div class="modal fade" id="comentarioModal" tabindex="-1" role="dialog" aria-labelledby="comentarioModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="comentarioModalLabel">Comentários</h5>
+                    <button type="button" class="close" aria-label="Close" onclick="fecharModalComentario()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group" id="listaComentariosModal">
+                        <!-- Comentários serão adicionados aqui -->
+                    </ul>
+                    <form id="formComentarioModal" class="mt-2" onsubmit="adicionarComentarioModal(event)">
+                        <input type="hidden" id="idPublicacaoComentarioModal">
+                        <div class="form-group">
+                            <textarea class="form-control" id="conteudoComentarioModal" placeholder="Escreva seu comentário..." rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Comentar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         // Definir ID do usuário logado ao carregar a página
         document.getElementById('id_usuario').value = localStorage.getItem('userId');
@@ -153,82 +180,27 @@
                                 <ul class="list-group" id="listaComentarios-${pub.ID}">
                                     <!-- Comentários serão adicionados aqui -->
                                 </ul>
-                                <form id="formComentario-${pub.ID_Publicação}" class="mt-2" onsubmit="adicionarComentario(event, ${pub.ID_Publicação})">
-                                    <input type="hidden" id="idPublicacao-${pub.ID_Publicação}">
-                                    <div class="form-group">
-                                        <textarea class="form-control" id="conteudoComentario-${pub.ID_Publicação}" placeholder="Escreva seu comentário..." rows="2"></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Comentar</button>
-                                </form>
+                                <div class="card-footer">
+                                    <button class="btn btn-primary" onclick="abrirModalComentario(${pub.ID_Publicação})">Comentários</button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
                 container.appendChild(pubElement);
-                carregarComentarios(pub.ID_Publicação);
             });
         }
 
-        async function adicionarComentario(event, id_publicacao) {
-            event.preventDefault();
-            const comentario = document.getElementById(`conteudoComentario-${id_publicacao}`).value;
+        
 
-            if (!id_publicacao || !comentario) {
-                alert('ID da publicação e comentário são obrigatórios.');
-                return;
-            }
+        // document.addEventListener('DOMContentLoaded', fetchPublicacoes);
 
-            try {
-                const response = await fetch('/comentar', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ id_publicacao, comentario })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Erro ao adicionar comentário: ${errorText}`);
-                }
-
-                const result = await response.json();
-                console.log(result);
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao adicionar comentário');
-            }
-        }
-
-        async function carregarComentarios(id_publicacao) {
-            const response = await fetch(`/comentarios/${id_publicacao}`);
-            if (!response.ok) {
-                console.error('Erro ao carregar comentários');
-                return;
-            }
-            const comentarios = await response.json();
-            const listaComentarios = document.getElementById(`listaComentarios-${id_publicacao}`);
-            listaComentarios.innerHTML = '';
-
-            comentarios.forEach(comentario => {
-                const comentarioElement = document.createElement('li');
-                comentarioElement.classList.add('list-group-item');
-                comentarioElement.innerHTML = `
-                    <strong>${comentario.Usuario}</strong>: ${comentario.Conteudo}
-                    <span class="badge badge-secondary">${new Date(comentario.Data_Comentario).toLocaleString()}</span>
-                `;
-                listaComentarios.appendChild(comentarioElement);
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', fetchPublicacoes);
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await fetchPublicacoes();
-            const usuarioResponse = await fetch('/api/usuario');
-            const usuarioData = await usuarioResponse.json();
-            localStorage.setItem('userId', usuarioData.ID_Usuário); // Certifique-se de usar a chave correta
-        });
+        // document.addEventListener('DOMContentLoaded', async () => {
+        //     await fetchPublicacoes();
+        //     const usuarioResponse = await fetch('/api/usuario');
+        //     const usuarioData = await usuarioResponse.json();
+        //     localStorage.setItem('userId', usuarioData.ID_Usuário); // Certifique-se de usar a chave correta
+        // });
 
 
         function abrirModalDenuncia(idPublicacao) {
@@ -274,6 +246,90 @@
                 alert('Erro ao denunciar publicação');
             }
         });
+
+        async function carregarComentarios(idPublicacao) {
+            try {
+                const response = await fetch(`/comentarios/${idPublicacao}`);
+                if (!response.ok) {
+                    console.error('Erro ao carregar comentários');
+                    return;
+                }
+                const comentarios = await response.json();
+                console.log('Comentários carregados:', comentarios); // Log para verificar os dados recebidos
+
+                const listaComentarios = document.getElementById('listaComentariosModal');
+                listaComentarios.innerHTML = '';
+
+                comentarios.forEach(comentario => {
+                    const comentarioElement = document.createElement('li');
+                    comentarioElement.classList.add('list-group-item');
+                    const usuario = comentario.Usuario || 'Usuário desconhecido';
+                    const conteudo = comentario.Comentario || 'Comentário vazio';
+                    const data = comentario.Data_Comentário ? new Date(comentario.Data_Comentário).toLocaleString() : 'Data desconhecida';
+
+                    comentarioElement.innerHTML = `
+                        <strong>${usuario}</strong>: ${conteudo}
+                        <span class="badge badge-secondary">${data}</span>
+                    `;
+                    listaComentarios.appendChild(comentarioElement);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar comentários:', error);
+            }
+        }
+
+        async function adicionarComentarioModal(event) {
+            event.preventDefault();
+            const id_publicacao = document.getElementById('idPublicacaoComentarioModal').value;
+            const comentario = document.getElementById('conteudoComentarioModal').value;
+
+            if (!id_publicacao || !comentario) {
+                alert('ID da publicação e comentário são obrigatórios.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/comentar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id_publicacao, comentario })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erro ao adicionar comentário: ${errorText}`);
+                }
+
+                // Recarregar os comentários após adicionar um novo
+                carregarComentarios(id_publicacao);
+                document.getElementById('conteudoComentarioModal').value = ''; // Limpar o campo de texto
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao adicionar comentário');
+            }
+        }
+
+
+        function abrirModalComentario(idPublicacao) {
+            document.getElementById('idPublicacaoComentarioModal').value = idPublicacao;
+            $('#comentarioModal').modal('show');
+            carregarComentarios(idPublicacao);  // Chama a função para carregar os comentários
+        }
+
+        function fecharModalComentario() {
+            $('#comentarioModal').modal('hide');
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPublicacoes);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchPublicacoes();
+            const usuarioResponse = await fetch('/api/usuario');
+            const usuarioData = await usuarioResponse.json();
+            localStorage.setItem('userId', usuarioData.ID_Usuário); // Certifique-se de usar a chave correta
+        });
+
     </script>
 
     <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

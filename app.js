@@ -124,16 +124,24 @@ app.get('/api/publicacoes', async (req, res) => {
 
 app.get('/comentarios/:id_publicacao', (req, res) => {
     const id_publicacao = req.params.id_publicacao;
-    const query = 'SELECT * FROM comentário WHERE ID_Publicação = ?';
+    const query = `
+        SELECT u.Nome AS Usuario, c.Comentario, c.Data_Comentário 
+        FROM comentário c
+        JOIN usuário u ON c.ID_Usuário = u.ID_Usuário
+        WHERE c.ID_Publicação = ?
+    `;
     
     conexao.query(query, [id_publicacao], (erro, resultados) => {
         if (erro) {
             console.error('Erro ao buscar comentários: ', erro);
             return res.status(500).send('Erro ao buscar comentários');
         }
+        console.log('Comentários encontrados:', resultados); // Log para verificar os resultados
         res.json(resultados);
     });
 });
+
+
 
 
 app.get('/perfil', (req, res) => {
