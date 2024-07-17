@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
         integrity="sha512-123455667890=" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="perfil.css">
+    <link rel="stylesheet" href="/public/perfil.css">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -47,43 +47,61 @@
         <form id="editarForm" action="/editar-nome" method="POST">
             <div class="form-group">
                 <label for="nome">Nome:</label>
-                <input type="text" id="nome" name="nome" value="" required disabled>
-                <button type="button" onclick="habilitarEdicao('nome')">Editar Nome</button>
-                <button type="submit" style="display: none;">Salvar</button>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="nome" name="nome" value="" required disabled>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" onclick="habilitarEdicao('nome')">Editar Nome</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success mt-2" style="display: none;">Salvar</button>
             </div>
         </form>
 
         <form id="editarEmailForm" action="/editar-email" method="POST">
             <div class="form-group">
                 <label for="email">Email:</label>
-                <input type="email" id="email" name="email" value="" required disabled>
-                <button type="button" onclick="habilitarEdicao('email')">Editar Email</button>
-                <button type="submit" style="display: none;">Salvar</button>
+                <div class="input-group">
+                    <input type="email" class="form-control" id="email" name="email" value="" required disabled>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" onclick="habilitarEdicao('email')">Editar Email</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success mt-2" style="display: none;">Salvar</button>
             </div>
         </form>
 
         <p>Data de Cadastro: <span id="dataCadastro"></span></p>
 
         <!-- Modal para mudança de senha -->
-        <div id="editarSenhaModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="fecharEditarSenhaModal()">&times;</span>
-                <h2>Editar Senha</h2>
-                <form id="editarSenhaForm" action="/editar-senha" method="POST">
-                    <label for="senhaAtual">Senha Atual:</label>
-                    <input type="password" id="senhaAtual" name="senhaAtual" required>
-
-                    <label for="novaSenha">Nova Senha:</label>
-                    <input type="password" id="novaSenha" name="novaSenha" required>
-
-                    <button type="submit">Salvar</button>
-                </form>
+        <div id="editarSenhaModal" class="modal fade" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Senha</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editarSenhaForm" action="/editar-senha" method="POST">
+                            <div class="form-group">
+                                <label for="senhaAtual">Senha Atual:</label>
+                                <input type="password" class="form-control" id="senhaAtual" name="senhaAtual" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="novaSenha">Nova Senha:</label>
+                                <input type="password" class="form-control" id="novaSenha" name="novaSenha" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">Salvar</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <form id="excluirForm" action="/excluir-conta" method="POST">
-            <button type="submit" onclick="return confirm('Tem certeza que deseja excluir sua conta?')">Excluir Conta</button>
-            <button type="button" onclick="abrirEditarSenhaModal()">Mudar Senha</button>
+        <form id="excluirForm" action="/excluir-conta" method="POST" class="mt-3">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja excluir sua conta?')">Excluir Conta</button>
+            <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#editarSenhaModal">Mudar Senha</button>
         </form>
     </div>
 
