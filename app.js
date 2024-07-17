@@ -73,7 +73,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-   res.sendFile(path.join(__dirname, 'pages/login/login.html'));
+   res.sendFile(path.join(__dirname, 'pages/login/login2.html'));
 });
 
 app.get('/usuario', (req, res) => {
