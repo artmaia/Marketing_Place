@@ -9,6 +9,26 @@ const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const app = express();
 
+function verificarUsuarioBloqueado(req, res, next) {
+    const userId = req.session.userId; // Assumindo que você armazena o ID do usuário na sessão
+
+    if (!userId) {
+        return next();
+    }
+
+    const sql = `SELECT Bloqueado FROM usuário WHERE ID_Usuário = ?`;
+
+    db.query(sql, [userId], (err, result) => {
+        if (err || result.length === 0 || result[0].Bloqueado === 1) {
+            req.session.destroy(); // Destruir a sessão se o usuário estiver bloqueado
+            return res.redirect('/login'); // Redirecionar para a página de login
+        }
+        next();
+    });
+}
+// Use o middleware em todas as rotas que requerem autenticação
+app.use(verificarUsuarioBloqueado);
+
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 
@@ -153,11 +173,83 @@ app.get('/administrador', (req, res) => {
 });
 
 app.get('/gerencia', (req, res) => {
-    res.sendFile(path.join(__dirname, 'pages/Admin/gerencia.html'));
+    res.sendFile(path.join(__dirname, 'pages/gerenciamento/gerencia.html'));
 });
 
+// Rota para listar usuários
+app.get('/listar-usuarios', async function(req, res) {
+    try {
+        // Consulta para obter todos os usuários
+        const [results] = await conexao.promise().query('SELECT ID_Usuário, Nome, Email FROM usuário');
+        res.json(results); // Retorna a lista de usuários em formato JSON
+    } catch (error) {
+        console.error('Erro ao listar usuários:', error);
+        res.status(500).send('Erro ao listar usuários.');
+    }
+});
+
+// Rota para listar publicações de um usuário
+app.get('/publicacoes-usuario/:id', async function(req, res) {
+    const userId = req.params.id;
+
+    try {
+        // Consulta para obter as publicações do usuário
+        const [results] = await conexao.promise().query('SELECT * FROM publicação WHERE ID_Usuário = ?', [userId]);
+        res.json(results); // Retorna a lista de publicações em formato JSON
+    } catch (error) {
+        console.error('Erro ao listar publicações:', error);
+        res.status(500).send('Erro ao listar publicações.');
+    }
+});
+
+
 app.get('/denuncias', (req, res) => {
-    res.sendFile(path.join(__dirname, 'pages/Admin/administrador.html'));
+    res.sendFile(path.join(__dirname, 'pages/denuncias/denuncias.html'));
+});
+
+// Rota para listar denúncias
+app.get('/listar-denuncias', async (req, res) => {
+    try {
+        const [denuncias] = await conexao.promise().query(`
+            SELECT d.ID_Denúncia, 
+                d.ID_Publicação, 
+                d.ID_Usuário AS ID_Denunciado, 
+                d.Motivo, 
+                d.Data_Denúncia, 
+                d.Status, 
+                p.Título AS Publicação, 
+                u.Nome AS Usuário_Denunciador, 
+                pu.Nome AS Autor_Publicação,
+                p.Imagem
+            FROM denúncia d
+            JOIN publicação p ON d.ID_Publicação = p.ID_Publicação
+            JOIN usuário u ON d.ID_Usuário = u.ID_Usuário  -- Usuário que fez a denúncia
+            JOIN usuário pu ON p.ID_Usuário = pu.ID_Usuário  -- Autor da publicação
+            WHERE d.Status != 'Resolvida';
+
+        `);
+        console.log('Denúncias:', denuncias); // Adicione este log
+        res.json(denuncias);
+    } catch (error) {
+        console.error('Erro ao listar denúncias:', error);
+        res.status(500).send('Erro ao listar denúncias.');
+    }
+});
+
+app.post('/alterar-status', (req, res) => {
+    const { id, status } = req.body;
+
+    // Verifique se os dados foram recebidos corretamente
+    console.log(`ID da Denúncia: ${id}, Novo Status: ${status}`);
+
+    // Execute a lógica para atualizar o status no banco de dados
+    const sql = 'UPDATE denúncia SET Status = ? WHERE ID_Denúncia = ?';
+    conexao.query(sql, [status, id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Status alterado com sucesso!' });
+    });
 });
 
 app.get('/main', (req, res) => {
@@ -295,6 +387,49 @@ app.post('/excluir-conta', (req, res) => {
     });
 });
 
+// app.post('/login-conta', async function(req, res) {
+//     const { email, password } = req.body;
+
+//     console.log('Corpo da requisição:', req.body); // Adiciona log para depuração
+//     console.log('Email recebido:', email); // Verifica o email recebido
+//     console.log('Password recebido:', password); // Verifica a senha recebida
+
+//     try {
+//         if (!email || !password) {
+//             console.log('Email ou senha não fornecidos'); // Adiciona log para email ou senha ausentes
+//             return res.status(400).send('Email ou senha não fornecidos');
+//         }
+
+//         // Consulta para buscar o usuário pelo email
+//         const [results] = await conexao.promise().query('SELECT * FROM usuário WHERE Email = ?', [email.trim()]);
+//         console.log('Resultados da consulta:', results); // Verifica os resultados da consulta
+
+//         if (results.length > 0) {
+//             const usuario = results[0];
+//             console.log('Usuário encontrado:', usuario); // Verifica o usuário encontrado
+
+//             // Comparar a senha usando bcrypt
+//             const senhaValida = await bcrypt.compare(password, usuario.Senha);
+//             console.log('Senha válida:', senhaValida); // Verifica a comparação de senha
+
+//             if (senhaValida) {
+//                 req.session.usuario_id = usuario['ID_Usuário'];
+//                 console.log('ID do usuário na sessão:', req.session.usuario_id); // Verifica se o ID do usuário está sendo armazenado corretamente
+//                 res.redirect('/main');
+//             } else {
+//                 console.log('Senha incorreta'); // Adiciona log para senha incorreta
+//                 res.status(401).send('Credenciais inválidas: Senha incorreta.');
+//             }
+//         } else {
+//             console.log('Email não encontrado'); // Adiciona log para email não encontrado
+//             res.status(401).send('Credenciais inválidas: Email não encontrado.');
+//         }
+//     } catch (error) {
+//         console.error('Erro ao verificar credenciais:', error);
+//         res.status(500).send('Erro ao processar o login.');
+//     }
+// });
+
 app.post('/login-conta', async function(req, res) {
     const { email, password } = req.body;
 
@@ -308,35 +443,51 @@ app.post('/login-conta', async function(req, res) {
             return res.status(400).send('Email ou senha não fornecidos');
         }
 
-        // Consulta para buscar o usuário pelo email
-        const [results] = await conexao.promise().query('SELECT * FROM usuário WHERE Email = ?', [email.trim()]);
-        console.log('Resultados da consulta:', results); // Verifica os resultados da consulta
+        // Verificar se o email pertence a um administrador
+        const [adminResults] = await conexao.promise().query('SELECT * FROM administrador WHERE Email = ?', [email.trim()]);
+        if (adminResults.length > 0) {
+            const admin = adminResults[0];
+            console.log('Administrador encontrado:', admin); // Verifica o administrador encontrado
 
-        if (results.length > 0) {
-            const usuario = results[0];
+            // Comparar a senha diretamente, sem criptografia
+            if (password === admin.Senha) {
+                req.session.admin_id = admin.ID_Administrador;
+                console.log('ID do administrador na sessão:', req.session.admin_id); // Verifica se o ID do administrador está sendo armazenado corretamente
+                return res.redirect('/gerencia'); // Redireciona para o painel do administrador
+            } else {
+                console.log('Senha incorreta para administrador'); // Adiciona log para senha incorreta
+                return res.status(401).send('Credenciais inválidas: Senha incorreta.');
+            }
+        }
+
+        // Se não for um administrador, verificar como um usuário comum
+        const [userResults] = await conexao.promise().query('SELECT * FROM usuário WHERE Email = ?', [email.trim()]);
+        if (userResults.length > 0) {
+            const usuario = userResults[0];
             console.log('Usuário encontrado:', usuario); // Verifica o usuário encontrado
 
             // Comparar a senha usando bcrypt
             const senhaValida = await bcrypt.compare(password, usuario.Senha);
-            console.log('Senha válida:', senhaValida); // Verifica a comparação de senha
+            console.log('Senha válida para usuário:', senhaValida); // Verifica a comparação de senha
 
             if (senhaValida) {
-                req.session.usuario_id = usuario['ID_Usuário'];
+                req.session.usuario_id = usuario.ID_Usuário;
                 console.log('ID do usuário na sessão:', req.session.usuario_id); // Verifica se o ID do usuário está sendo armazenado corretamente
-                res.redirect('/main');
+                return res.redirect('/main'); // Redireciona para a página principal do usuário
             } else {
-                console.log('Senha incorreta'); // Adiciona log para senha incorreta
-                res.status(401).send('Credenciais inválidas: Senha incorreta.');
+                console.log('Senha incorreta para usuário'); // Adiciona log para senha incorreta
+                return res.status(401).send('Credenciais inválidas: Senha incorreta.');
             }
-        } else {
-            console.log('Email não encontrado'); // Adiciona log para email não encontrado
-            res.status(401).send('Credenciais inválidas: Email não encontrado.');
         }
+
+        console.log('Email não encontrado para administrador ou usuário'); // Adiciona log para email não encontrado
+        res.status(401).send('Credenciais inválidas: Email não encontrado.');
     } catch (error) {
         console.error('Erro ao verificar credenciais:', error);
         res.status(500).send('Erro ao processar o login.');
     }
 });
+
 
 app.post('/logout', (req, res) => {
     req.session.destroy(err => {
@@ -404,6 +555,25 @@ app.get('/publicacoes', async (req, res) => {
         res.status(500).send('Erro ao buscar publicações');
     }
 });
+
+// Excluir publicação
+app.post('/excluir-publicacao', async (req, res) => {
+    const { idPublicacao } = req.body;
+    
+    try {
+        // Exclui a publicação do banco de dados
+        await db.query('DELETE FROM publicação WHERE ID_Publicação = ?', [idPublicacao]);
+
+        // Mensagem de confirmação
+        const motivo = "Sua publicação foi excluída por um administrador.";
+        
+        res.json({ success: true, message: motivo });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Erro ao excluir a publicação' });
+    }
+});
+
 
 // Rotas para editar dados do usuário
 app.post('/editar-nome', (req, res) => {
@@ -554,6 +724,44 @@ app.post('/denunciar', verificarAutenticacao, (req, res) => {
             return res.status(500).send('Erro ao registrar denúncia');
         }
         res.send('Denúncia registrada com sucesso');
+    });
+});
+
+app.post('/bloquear-usuario', (req, res) => {
+    const idUsuario = req.body.idUsuario;
+    const sql = `UPDATE usuário SET Bloqueado = 1 WHERE ID_Usuário = ?`;
+
+    conexao.query(sql, [idUsuario], (err, result) => {
+        if (err) {
+            return res.json({ success: false, message: 'Erro ao bloquear usuário' });
+        }
+        res.json({ success: true });
+    });
+});
+
+// Desbloquear usuário
+app.post('/desbloquear-usuario', (req, res) => {
+    const idUsuario = req.body.idUsuario;
+    const sql = `UPDATE usuário SET Bloqueado = 0 WHERE ID_Usuário = ?`;
+
+    db.query(sql, [idUsuario], (err, result) => {
+        if (err) {
+            return res.json({ success: false, message: 'Erro ao desbloquear usuário' });
+        }
+        res.json({ success: true });
+    });
+});
+
+// Verificar status do usuário
+app.get('/status-usuario/:id', (req, res) => {
+    const idUsuario = req.params.id;
+    const sql = `SELECT Bloqueado FROM usuário WHERE ID_Usuário = ?`;
+
+    conexao.query(sql, [idUsuario], (err, result) => {
+        if (err) {
+            return res.json({ success: false, message: 'Erro ao verificar status do usuário' });
+        }
+        res.json({ bloqueado: result[0].Bloqueado === 1 });
     });
 });
 

@@ -1,0 +1,76 @@
+/* Estilos para o modal */
+#publicacoes-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh; /* Define a altura máxima do modal */
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    overflow: hidden; /* Impede que o modal se expanda além da altura máxima */
+    z-index: 1000; /* Garante que o modal fique acima dos outros conteúdos */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Contêiner para o título e o botão de fechar */
+#modal-header {
+    position: sticky;
+    top: 0;
+    background-color: white; /* Cor de fundo para o título */
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+    z-index: 1001; /* Garante que o título fique acima do conteúdo */
+}
+
+/* Estilos para o título e o botão de fechar */
+#modal-header h2 {
+    margin: 0;
+}
+
+#modal-header button {
+    float: right; /* Alinha o botão à direita */
+}
+
+/* Estilos para o conteúdo rolável do modal */
+#modal-content {
+    overflow-y: auto; /* Adiciona rolagem vertical se necessário */
+    flex: 1; /* Faz o conteúdo ocupar o espaço restante do modal */
+    padding: 10px;
+}
+
+#publicacoes-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#publicacoes-list li {
+    margin-bottom: 15px;
+}
+
+#publicacoes-list img {
+    max-width: 100%; /* Garante que a imagem não ultrapasse o tamanho do modal */
+    height: auto;
+}
+
+button {
+    margin-top: 20px;
+}
+
+#link-denuncias {
+    display: inline-block;
+    margin: 20px 0;
+    font-size: 16px;
+    color: #007bff;
+    text-decoration: none;
+}
+
+#link-denuncias:hover {
+    text-decoration: underline;
+}

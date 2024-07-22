@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Denúncias</title>
+    <link rel="stylesheet" href="denuncias.css"> <!-- Adicione seu CSS aqui -->
+</head>
+<body>
+    <h1>Lista de Denúncias</h1>
+    <div id="denuncias-container"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Carrega a lista de denúncias
+            $.get('/listar-denuncias', function(denuncias) {
+                denuncias.forEach(denuncia => {
+                    // Verifica se a imagem existe
+                    const imagePath = denuncia.Imagem ? `/uploads/${denuncia.Imagem}` : '/uploads/default-image.jpg';
+                    
+                    $('#denuncias-container').append(`
+                        <div class="denuncia-card">
+                            <h2>Denúncia de ${denuncia.Usuário_Denunciador} </h2>
+                            <p><strong>Publicação Denunciada:</strong> ${denuncia.Publicação}</p>
+                            <p><strong>Autor da Publicação:</strong> ${denuncia.Autor_Publicação}</p>
+                            <p><strong>Motivo:</strong> ${denuncia.Motivo}</p>
+                            <p><strong>Data:</strong> ${new Date(denuncia.Data_Denúncia).toLocaleDateString()}</p>
+                            <p><strong>Status:</strong> ${denuncia.Status}</p>
+                            <img src="${imagePath}" alt="${denuncia.Publicação}" style="max-width: 100px; max-height: 100px;">
+                            <button onclick="alterarStatus(${denuncia.ID_Denúncia}, 'Resolvida')">Marcar como Resolvida</button>
+                        </div>
+                    `);
+                });
+            });
+        });
+
+        function alterarStatus(id, status) {
+            $.post('/alterar-status', { id, status }, function(response) {
+                alert('Status alterado com sucesso!');
+                // Atualizar a página ou a lista de denúncias conforme necessário
+            });
+        }
+    </script>
+</body>
+</html>

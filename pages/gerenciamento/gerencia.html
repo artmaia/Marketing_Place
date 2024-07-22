@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerência de Usuários</title>
+    <link rel="stylesheet" href="gerencia.css"> <!-- Adicione seu CSS aqui -->
+</head>
+<body>
+    <h1>Gerência de Usuários</h1>
+
+    <!-- Link para a página de denúncias -->
+    <p><a href="/denuncias" id="link-denuncias">Ir para Denúncias</a></p>
+
+    <ul id="user-list"></ul> <!-- Lista de usuários -->
+
+    <!-- Modal para mostrar publicações -->
+    <div id="publicacoes-modal" style="display: none;">
+        <div id="modal-header">
+            <h2>Publicações do Usuário</h2>
+            <button onclick="fecharModal()">Fechar</button>
+        </div>
+        <div id="modal-content">
+            <ul id="publicacoes-list"></ul>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Carrega a lista de usuários
+            $.get('/listar-usuarios', function(users) {
+                users.forEach(user => {
+                    const userItem = `<li>
+                        <a href="#" data-id="${user.ID_Usuário}" class="view-publicacoes">${user.Nome}</a>
+                        <button class="block-user-button" data-id="${user.ID_Usuário}" style="${user.Bloqueado ? 'display: none;' : ''}">Bloquear</button>
+                        <button class="unblock-user-button" data-id="${user.ID_Usuário}" style="${user.Bloqueado ? '' : 'display: none;'}">Desbloquear</button>
+                    </li>`;
+                    $('#user-list').append(userItem);
+                });
+            });
+
+            // Evento para abrir o modal com publicações
+            $(document).on('click', '.view-publicacoes', function(event) {
+                event.preventDefault();
+                const userId = $(this).data('id');
+                
+                $.get(`/publicacoes-usuario/${userId}`, function(publicacoes) {
+                    $('#publicacoes-list').empty(); // Limpa a lista de publicações
+                    publicacoes.forEach(pub => {
+                        $('#publicacoes-list').append(`
+                            <li>
+                                <strong>${pub.Título}</strong> - 
+                                <small>${new Date(pub.Data_Publicação).toLocaleDateString('pt-BR')}</small><br>
+                                <img src="/uploads/${pub.Imagem}" alt="${pub.Título}" style="max-width: 100%; max-height: 200px;">
+                                <button onclick="excluirPublicacao(${pub.ID_Publicação})">Excluir</button>
+                            </li>
+                        `);
+                    });
+                    $('#publicacoes-modal').show(); // Mostra o modal
+                });
+            });
+
+            // Evento para bloquear usuário
+            $(document).on('click', '.block-user-button', function() {
+                const userId = $(this).data('id');
+                if (confirm('Tem certeza de que deseja bloquear este usuário?')) {
+                    $.post('/bloquear-usuario', { idUsuario: userId }, function(response) {
+                        if (response.success) {
+                            alert('Usuário bloqueado com sucesso.');
+                            $(`button.block-user-button[data-id='${userId}']`).hide();
+                            $(`button.unblock-user-button[data-id='${userId}']`).show();
+                        } else {
+                            alert('Erro ao bloquear usuário.');
+                        }
+                    }).fail(function() {
+                        alert('Erro ao bloquear usuário.');
+                    });
+                }
+            });
+
+            // Evento para desbloquear usuário
+            $(document).on('click', '.unblock-user-button', function() {
+                const userId = $(this).data('id');
+                if (confirm('Tem certeza de que deseja desbloquear este usuário?')) {
+                    $.post('/desbloquear-usuario', { idUsuario: userId }, function(response) {
+                        if (response.success) {
+                            alert('Usuário desbloqueado com sucesso.');
+                            $(`button.block-user-button[data-id='${userId}']`).show();
+                            $(`button.unblock-user-button[data-id='${userId}']`).hide();
+                        } else {
+                            alert('Erro ao desbloquear usuário.');
+                        }
+                    }).fail(function() {
+                        alert('Erro ao desbloquear usuário.');
+                    });
+                }
+            });
+        });
+
+        function fecharModal() {
+            $('#publicacoes-modal').hide(); // Fecha o modal
+        }
+
+        function excluirPublicacao(idPublicacao) {
+            if (confirm('Tem certeza de que deseja excluir esta publicação?')) {
+                $.post('/excluir-publicacao', { idPublicacao: idPublicacao }, function(response) {
+                    if (response.success) {
+                        alert(response.message); // Exibe o motivo da exclusão
+                        $('#publicacoes-modal').hide(); // Fecha o modal após exclusão
+                        // Atualize a lista de publicações ou recarregue a página
+                        // Pode ser necessário recarregar a lista de publicações do usuário
+                    } else {
+                        alert(response.message); // Exibe a mensagem de erro
+                    }
+                }).fail(function() {
+                    alert('Erro ao excluir a publicação');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+/* Estilos gerais da página de denúncias */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Estilo do cabeçalho */
+h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Contêiner dos cards */
+#denuncias-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Estilo do card de denúncia */
+
+.denuncia-card h2 {
+    font-size: 18px;
+    margin: 0 0 10px;
+}
+
+.denuncia-card p {
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.denuncia-card .denuncia-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+/* Adiciona margem aos elementos */
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+
+/* Estilo do card de denúncia */
+/* Estilo do card de denúncia */
+.denuncia-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 300px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Estilo da imagem da denúncia */
+.denuncia-card .denuncia-image {
+    margin: 10px 0;
+}
+
+
+/* Estilo do botão de atualizar status */
+.denuncia-card .update-status {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.denuncia-card .update-status:hover {
+    background-color: #0056b3;
+}
