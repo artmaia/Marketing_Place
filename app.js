@@ -454,42 +454,55 @@ app.post('/editar-email', (req, res) => {
     });
 });
 
-
-
 app.post('/editar-senha', async (req, res) => {
     const { senhaAtual, novaSenha } = req.body;
     const id_usuario = req.session.usuario_id;
 
-    try {
-        if (!id_usuario) {
-            throw new Error('Usuário não autenticado');
-        }
-        
-        const [usuario] = await conexao.execute('SELECT * FROM usuário WHERE ID_Usuário = ?', [id_usuario]);
-        if (!usuario) {
-            throw new Error('Usuário não encontrado');
-        }
-
-        const senhaValida = await bcrypt.compare(senhaAtual, usuario.Senha);
-        if (!senhaValida) {
-            throw new Error('Senha atual incorreta');
-        }
-
-        const hashedPassword = await bcrypt.hash(novaSenha, 10);
-
-        const updateQuery = 'UPDATE usuário SET Senha = ? WHERE ID_Usuário = ?';
-        const [resultados] = await conexao.execute(updateQuery, [hashedPassword, id_usuario]);
-
-        if (resultados.affectedRows === 1) {
-            res.status(200).send('Senha atualizada com sucesso!');
-        } else {
-            res.status(500).send('Erro ao atualizar senha');
-        }
-    } catch (erro) {
-        console.error('Erro ao editar senha: ', erro);
-        res.status(500).send('Erro ao editar senha');
+    if (!id_usuario) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
     }
+
+    // Busca o usuário e a senha atual no banco de dados
+    const selectQuery = 'SELECT Senha FROM usuário WHERE ID_Usuário = ?';
+    conexao.execute(selectQuery, [id_usuario], async (err, resultados) => {
+        if (err) {
+            console.error('Erro ao buscar usuário:', err);
+            return res.status(500).json({ error: 'Erro ao buscar usuário' });
+        }
+
+        if (resultados.length === 0) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+
+        const senhaHash = resultados[0].Senha;
+
+        // Verifica se a senha atual está correta
+        const senhaValida = await bcrypt.compare(senhaAtual, senhaHash);
+        if (!senhaValida) {
+            return res.status(401).json({ error: 'Senha atual incorreta' });
+        }
+
+        // Gera o hash da nova senha
+        const novaSenhaHash = await bcrypt.hash(novaSenha, 10);
+
+        // Atualiza a senha do usuário no banco de dados
+        const updateQuery = 'UPDATE usuário SET Senha = ? WHERE ID_Usuário = ?';
+        conexao.execute(updateQuery, [novaSenhaHash, id_usuario], (err, resultados) => {
+            if (err) {
+                console.error('Erro ao editar senha:', err);
+                return res.status(500).json({ error: 'Erro ao editar senha' });
+            }
+
+            if (resultados.affectedRows === 1) {
+                res.status(200).json({ success: 'Senha alterada com sucesso' });
+            } else {
+                res.status(500).json({ error: 'Erro ao atualizar senha' });
+            }
+        });
+    });
 });
+
+
 
 // Adicionar comentário
 // app.post('/comentar', async (req, res) => {
