@@ -30,12 +30,12 @@
             // Carrega a lista de usuários
             $.get('/listar-usuarios', function(users) {
                 users.forEach(user => {
-                    const userItem = `<li>
-                        <a href="#" data-id="${user.ID_Usuário}" class="view-publicacoes">${user.Nome}</a>
-                        <button class="block-user-button" data-id="${user.ID_Usuário}" style="${user.Bloqueado ? 'display: none;' : ''}">Bloquear</button>
-                        <button class="unblock-user-button" data-id="${user.ID_Usuário}" style="${user.Bloqueado ? '' : 'display: none;'}">Desbloquear</button>
-                    </li>`;
-                    $('#user-list').append(userItem);
+                    $('#user-list').append(`
+                        <li>
+                            <a href="#" data-id="${user.ID_Usuário}" class="view-publicacoes">${user.Nome}</a>
+                            <button data-id="${user.ID_Usuário}" onclick="bloquearUsuario(${user.ID_Usuário}, ${user.Bloqueado})">${user.Bloqueado ? 'Desbloquear' : 'Bloquear'}</button>
+                        </li>
+                    `);
                 });
             });
 
@@ -59,42 +59,6 @@
                     $('#publicacoes-modal').show(); // Mostra o modal
                 });
             });
-
-            // Evento para bloquear usuário
-            $(document).on('click', '.block-user-button', function() {
-                const userId = $(this).data('id');
-                if (confirm('Tem certeza de que deseja bloquear este usuário?')) {
-                    $.post('/bloquear-usuario', { idUsuario: userId }, function(response) {
-                        if (response.success) {
-                            alert('Usuário bloqueado com sucesso.');
-                            $(`button.block-user-button[data-id='${userId}']`).hide();
-                            $(`button.unblock-user-button[data-id='${userId}']`).show();
-                        } else {
-                            alert('Erro ao bloquear usuário.');
-                        }
-                    }).fail(function() {
-                        alert('Erro ao bloquear usuário.');
-                    });
-                }
-            });
-
-            // Evento para desbloquear usuário
-            $(document).on('click', '.unblock-user-button', function() {
-                const userId = $(this).data('id');
-                if (confirm('Tem certeza de que deseja desbloquear este usuário?')) {
-                    $.post('/desbloquear-usuario', { idUsuario: userId }, function(response) {
-                        if (response.success) {
-                            alert('Usuário desbloqueado com sucesso.');
-                            $(`button.block-user-button[data-id='${userId}']`).show();
-                            $(`button.unblock-user-button[data-id='${userId}']`).hide();
-                        } else {
-                            alert('Erro ao desbloquear usuário.');
-                        }
-                    }).fail(function() {
-                        alert('Erro ao desbloquear usuário.');
-                    });
-                }
-            });
         });
 
         function fecharModal() {
@@ -117,6 +81,25 @@
                 });
             }
         }
+
+        function bloquearUsuario(idUsuario, bloqueado) {
+            const acao = bloqueado ? 'desbloquear' : 'bloquear';
+            if (confirm(`Tem certeza de que deseja ${acao} este usuário?`)) {
+                $.post('/bloquear-usuario', { idUsuario: idUsuario, acao: acao }, function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        // Atualiza o botão sem recarregar a página
+                        $(`button[data-id="${idUsuario}"]`).text(response.novoEstado ? 'Desbloquear' : 'Bloquear');
+                        $(`button[data-id="${idUsuario}"]`).attr('onclick', `bloquearUsuario(${idUsuario}, ${response.novoEstado})`);
+                    } else {
+                        alert(response.message);
+                    }
+                }).fail(function() {
+                    alert('Erro ao alterar o estado de bloqueio do usuário');
+                });
+            }
+        }
+
     </script>
 </body>
 </html>

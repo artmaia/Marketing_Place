@@ -9,25 +9,6 @@ const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const app = express();
 
-function verificarUsuarioBloqueado(req, res, next) {
-    const userId = req.session.userId; // Assumindo que você armazena o ID do usuário na sessão
-
-    if (!userId) {
-        return next();
-    }
-
-    const sql = `SELECT Bloqueado FROM usuário WHERE ID_Usuário = ?`;
-
-    db.query(sql, [userId], (err, result) => {
-        if (err || result.length === 0 || result[0].Bloqueado === 1) {
-            req.session.destroy(); // Destruir a sessão se o usuário estiver bloqueado
-            return res.redirect('/login'); // Redirecionar para a página de login
-        }
-        next();
-    });
-}
-// Use o middleware em todas as rotas que requerem autenticação
-app.use(verificarUsuarioBloqueado);
 
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
@@ -60,15 +41,55 @@ app.use(session({
     secret: 'secreto',
     resave: false,
     saveUninitialized: true,
+    cookie: { secure: false }
 }));
 
-function verificarAutenticacao(req, res, next) {
-    if (req.session.usuario_id) {
-        next();
-    } else {
-        res.status(401).json({ message: 'Usuário não autenticado' });
+async function verificarAutenticacao(req, res, next) {
+    const userId = req.session.usuario_id;
+
+    if (!userId) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+
+    try {
+        const [resultados] = await conexao.promise().query('SELECT Bloqueado FROM usuário WHERE ID_Usuário = ?', [userId]);
+
+        if (resultados.length === 0) {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+        const usuario = resultados[0];
+
+        if (usuario.Bloqueado) {
+            req.session.destroy(); // Destruir a sessão se o usuário estiver bloqueado
+            return res.status(403).json({ message: 'Sua conta está bloqueada. Contate o suporte.' });
+        }
+
+        next(); // Usuário autenticado e não bloqueado
+    } catch (erro) {
+        console.error('Erro ao verificar status do usuário: ', erro);
+        res.status(500).json({ message: 'Erro ao verificar status do usuário' });
     }
 }
+
+// function verificarUsuarioBloqueado(req, res, next) {
+//     const userId = req.session.userId; // Assumindo que você armazena o ID do usuário na sessão
+
+//     if (!userId) {
+//         return next();
+//     }
+
+//     const sql = `SELECT Bloqueado FROM usuário WHERE ID_Usuário = ?`;
+
+//     conexao.query(sql, [userId], (err, result) => {
+//         if (err || result.length === 0 || result[0].Bloqueado === 1) {
+//             req.session.destroy(); // Destruir a sessão se o usuário estiver bloqueado
+//             return res.redirect('/login'); // Redirecionar para a página de login
+//         }
+//         next();
+//     });
+// }
+
 
 app.get('/api/usuario', verificarAutenticacao, async (req, res) => {
     const userId = req.session.usuario_id;
@@ -100,6 +121,7 @@ app.get('/usuario', (req, res) => {
    res.sendFile(path.join(__dirname, 'pages/Usuario/Usuario.html'));
 });
 
+
 app.get('/minhasPublicacoes', verificarAutenticacao, async (req, res) => {
     const userId = req.session.usuario_id;
 
@@ -113,6 +135,7 @@ app.get('/minhasPublicacoes', verificarAutenticacao, async (req, res) => {
         res.status(500).send('Erro ao carregar publicações do usuário');
     }
 });
+
 
 // Função para buscar publicações do usuário
 async function buscarPublicacoesDoUsuario(userId) {
@@ -168,6 +191,7 @@ app.get('/perfil', (req, res) => {
     res.sendFile(path.join(__dirname, 'pages/perfil/perfil.html'));
 });
 
+
 app.get('/administrador', (req, res) => {
     res.sendFile(path.join(__dirname, 'pages/Admin/administrador.html'));
 });
@@ -180,13 +204,14 @@ app.get('/gerencia', (req, res) => {
 app.get('/listar-usuarios', async function(req, res) {
     try {
         // Consulta para obter todos os usuários
-        const [results] = await conexao.promise().query('SELECT ID_Usuário, Nome, Email FROM usuário');
+        const [results] = await conexao.promise().query('SELECT ID_Usuário, Nome, Email, Bloqueado FROM usuário');
         res.json(results); // Retorna a lista de usuários em formato JSON
     } catch (error) {
         console.error('Erro ao listar usuários:', error);
         res.status(500).send('Erro ao listar usuários.');
     }
 });
+
 
 // Rota para listar publicações de um usuário
 app.get('/publicacoes-usuario/:id', async function(req, res) {
@@ -387,49 +412,6 @@ app.post('/excluir-conta', (req, res) => {
     });
 });
 
-// app.post('/login-conta', async function(req, res) {
-//     const { email, password } = req.body;
-
-//     console.log('Corpo da requisição:', req.body); // Adiciona log para depuração
-//     console.log('Email recebido:', email); // Verifica o email recebido
-//     console.log('Password recebido:', password); // Verifica a senha recebida
-
-//     try {
-//         if (!email || !password) {
-//             console.log('Email ou senha não fornecidos'); // Adiciona log para email ou senha ausentes
-//             return res.status(400).send('Email ou senha não fornecidos');
-//         }
-
-//         // Consulta para buscar o usuário pelo email
-//         const [results] = await conexao.promise().query('SELECT * FROM usuário WHERE Email = ?', [email.trim()]);
-//         console.log('Resultados da consulta:', results); // Verifica os resultados da consulta
-
-//         if (results.length > 0) {
-//             const usuario = results[0];
-//             console.log('Usuário encontrado:', usuario); // Verifica o usuário encontrado
-
-//             // Comparar a senha usando bcrypt
-//             const senhaValida = await bcrypt.compare(password, usuario.Senha);
-//             console.log('Senha válida:', senhaValida); // Verifica a comparação de senha
-
-//             if (senhaValida) {
-//                 req.session.usuario_id = usuario['ID_Usuário'];
-//                 console.log('ID do usuário na sessão:', req.session.usuario_id); // Verifica se o ID do usuário está sendo armazenado corretamente
-//                 res.redirect('/main');
-//             } else {
-//                 console.log('Senha incorreta'); // Adiciona log para senha incorreta
-//                 res.status(401).send('Credenciais inválidas: Senha incorreta.');
-//             }
-//         } else {
-//             console.log('Email não encontrado'); // Adiciona log para email não encontrado
-//             res.status(401).send('Credenciais inválidas: Email não encontrado.');
-//         }
-//     } catch (error) {
-//         console.error('Erro ao verificar credenciais:', error);
-//         res.status(500).send('Erro ao processar o login.');
-//     }
-// });
-
 app.post('/login-conta', async function(req, res) {
     const { email, password } = req.body;
 
@@ -488,7 +470,6 @@ app.post('/login-conta', async function(req, res) {
     }
 });
 
-
 app.post('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {
@@ -533,7 +514,7 @@ app.post('/publicar', upload.single('imagem'), (req, res) => {
 });
 
 // Rota para visualizar publicações
-app.get('/publicacoes', async (req, res) => {
+app.get('/publicacoes', verificarAutenticacao, async (req, res) => {
     try {
         const query = `
             SELECT p.ID_Publicação, p.Título, p.Imagem, p.Data_Publicação, u.Nome AS Autor
@@ -555,6 +536,7 @@ app.get('/publicacoes', async (req, res) => {
         res.status(500).send('Erro ao buscar publicações');
     }
 });
+
 
 // Excluir publicação
 app.post('/excluir-publicacao', async (req, res) => {
@@ -728,14 +710,15 @@ app.post('/denunciar', verificarAutenticacao, (req, res) => {
 });
 
 app.post('/bloquear-usuario', (req, res) => {
-    const idUsuario = req.body.idUsuario;
-    const sql = `UPDATE usuário SET Bloqueado = 1 WHERE ID_Usuário = ?`;
+    const { idUsuario, acao } = req.body;
+    const novoEstado = acao === 'bloquear' ? 1 : 0;
+    const sql = 'UPDATE usuário SET Bloqueado = ? WHERE ID_Usuário = ?';
 
-    conexao.query(sql, [idUsuario], (err, result) => {
+    conexao.query(sql, [novoEstado, idUsuario], (err, result) => {
         if (err) {
-            return res.json({ success: false, message: 'Erro ao bloquear usuário' });
+            return res.status(500).json({ success: false, message: 'Erro ao atualizar o estado de bloqueio do usuário' });
         }
-        res.json({ success: true });
+        res.json({ success: true, message: `Usuário ${acao} com sucesso`, novoEstado: novoEstado });
     });
 });
 
@@ -744,7 +727,7 @@ app.post('/desbloquear-usuario', (req, res) => {
     const idUsuario = req.body.idUsuario;
     const sql = `UPDATE usuário SET Bloqueado = 0 WHERE ID_Usuário = ?`;
 
-    db.query(sql, [idUsuario], (err, result) => {
+    conexao.query(sql, [idUsuario], (err, result) => {
         if (err) {
             return res.json({ success: false, message: 'Erro ao desbloquear usuário' });
         }
