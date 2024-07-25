@@ -23,6 +23,11 @@
     color: #0056b3;
 }
 
+.row {
+    display: flex;
+    justify-content: center;
+}
+
 
 /* Estilos para o formulário de publicação */
 #formPublicacao {
