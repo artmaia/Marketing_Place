@@ -43,6 +43,18 @@
     
     <div class="container mt-4">
         <h1>Perfil do Usuário</h1>
+
+        <form id="uploadFotoForm" action="/atualizar-foto-perfil" method="POST" enctype="multipart/form-data">
+            <div class="foto-perfil-container">
+                <img id="fotoPerfil" src="/uploads/" alt="Foto de Perfil" class="foto-perfil">
+            </div>
+            <div class="form-group">
+                <label for="fotoPerfil">Foto de Perfil:</label>
+                <input type="file" id="fotoPerfil" name="fotoPerfil" accept="image/*">
+                <button type="submit" class="btn btn-primary">Atualizar Foto</button>
+            </div>
+        </form>
+
         <form id="editarForm" action="/editar-nome" method="POST">
             <div class="form-group">
                 <label for="nome">Nome:</label>
@@ -95,6 +107,11 @@
                 if (response.ok) {
                     document.getElementById('nome').value = usuario.Nome;
                     document.getElementById('email').value = usuario.Email;
+
+                    const fotoPerfil = document.getElementById('fotoPerfil');
+                        if (usuario.foto_perfil) {
+                            fotoPerfil.src = `/uploads/${usuario.foto_perfil}`;
+                        }
 
                     const dataCadastro = new Date(usuario.Data_Cadastro);
                     if (!isNaN(dataCadastro.getTime())) {
@@ -177,6 +194,42 @@
         function fecharEditarSenhaModal() {
             document.getElementById('editarSenhaModal').style.display = 'none';
         }
+
+        document.getElementById('alterarFoto').addEventListener('click', () => {
+            document.getElementById('uploadFotoForm').style.display = 'block';
+        });
+
+        document.getElementById('cancelarUpload').addEventListener('click', () => {
+            document.getElementById('uploadFotoForm').style.display = 'none';
+        });
+
+        document.getElementById('uploadFotoForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita o envio padrão do formulário
+
+            const formData = new FormData(this);
+
+            fetch('/atualizar-foto-perfil', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include' // Inclui cookies na requisição, se necessário
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualiza a imagem de perfil na página
+                    document.getElementById('fotoPerfil').src = data.novaImagemUrl;
+
+                    // Oculta o formulário
+                    document.getElementById('uploadFotoForm').classList.add('hidden');
+                } else {
+                    alert('Erro ao atualizar foto de perfil. Tente novamente.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao atualizar foto de perfil:', error);
+                alert('Erro na requisição. Por favor, tente novamente mais tarde.');
+            });
+        });
     </script>
 </body>
 </html>

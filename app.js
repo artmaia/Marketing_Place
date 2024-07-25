@@ -314,6 +314,31 @@ const storage = multer.diskStorage({
     }
 });
 
+app.post('/atualizar-foto-perfil', upload.single('fotoPerfil'), (req, res) => {
+    const id_usuario = req.session.usuario_id;
+    if (!id_usuario) {
+        return res.status(401).send('Usuário não autenticado');
+    }
+
+    // Verifica se um arquivo foi enviado
+    if (!req.file) {
+        return res.status(400).send('Nenhuma foto enviada');
+    }
+
+    const foto_perfil = req.file.filename; // Nome do arquivo salvo no servidor
+
+    // Atualiza o caminho da foto no banco de dados
+    const updateQuery = 'UPDATE usuário SET foto_perfil = ? WHERE ID_Usuário = ?';
+    conexao.query(updateQuery, [foto_perfil, id_usuario], (err, resultados) => {
+        if (err) {
+            console.error('Erro ao atualizar foto de perfil:', err);
+            return res.status(500).send('Erro ao atualizar foto de perfil');
+        }
+
+        res.redirect('/perfil');
+    });
+});
+
 
 // funcionalidades: 
 
@@ -517,7 +542,7 @@ app.post('/publicar', upload.single('imagem'), (req, res) => {
 app.get('/publicacoes', verificarAutenticacao, async (req, res) => {
     try {
         const query = `
-            SELECT p.ID_Publicação, p.Título, p.Imagem, p.Data_Publicação, u.Nome AS Autor
+            SELECT p.ID_Publicação, p.Título, p.Imagem, p.Data_Publicação, u.Nome AS Autor, u.Foto_Perfil
             FROM publicação p
             JOIN usuário u ON p.ID_Usuário = u.ID_Usuário
             WHERE p.Status = 'Ativa'

@@ -185,6 +185,8 @@
                 const pubElement = document.createElement('div');
                 pubElement.classList.add('col-12', 'mb-3');
 
+                const perfilImagePath = pub.Foto_Perfil ? `/uploads/${pub.Foto_Perfil}` : '/uploads/default-profile.jpg';
+
                 let imagemHTML = '';
                 if (pub.Imagem) {
                     const imagePath = `/uploads/${pub.Imagem}`;
@@ -194,13 +196,14 @@
                 pubElement.innerHTML = `
                     <div class="card">
                         <div class="card-body">
-                            <div class="title-denuncia">
-                                <h5 class="card-title">
-                                ${pub.Título}
-                                </h5>
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="${perfilImagePath}" class="rounded-circle" alt="Foto de Perfil" style="width: 40px; height: 40px; object-fit: cover; margin-right: 10px;">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title">${pub.Título}</h5>
+                                </div>
                                 <button class="button-denuncia" onclick="abrirModalDenuncia(${pub.ID_Publicação})">
                                     <i class="bi bi-exclamation-triangle-fill" title="Denunciar"></i>
-                                </button>  
+                                </button>
                             </div>
                             <p class="card-text">Por: ${pub.Autor}</p>
                             <p class="card-text"><small class="text-muted">Data: ${new Date(pub.Data_Publicação).toLocaleDateString()}</small></p>
