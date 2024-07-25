@@ -42,13 +42,22 @@
             <div class="col-md-8">
                 <form id="formPublicacao" enctype="multipart/form-data" action="/publicar" method="POST">
                     <input type="hidden" id="id_usuario" name="id_usuario">
-                    <div class="form-group">
-                        <input type="text" class="form-control" id="tituloPublicacao" name="titulo" placeholder="Título da publicação">
+                    <div class="form-row align-items-center">
+                        <div class="col-auto">
+                            <input type="text" class="form-control mb-2" id="tituloPublicacao" name="titulo" placeholder="Título da publicação">
+                        </div>
+                        <div class="col-auto">
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="imagemPublicacao" name="imagem">
+                                <label class="custom-file-label" for="imagemPublicacao">
+                                    <img src="/public/images/img_select.png" alt="Select File" class="file-select-image">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-info mb-2">Publicar</button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <input type="file" class="form-control-file" id="imagemPublicacao" name="imagem">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Publicar</button>
                 </form>
 
                 <div class="container mt-4">
@@ -110,6 +119,28 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Click on the image triggers the file input click
+            $('.file-select-image').on('click', function () {
+                $('#imagemPublicacao').click();
+            });
+
+            // Update the label text with the file name
+            $('#imagemPublicacao').on('change', function (event) {
+                var inputFile = event.currentTarget;
+                $(inputFile).parent().find('.custom-file-label').html(inputFile.files[0].name);
+                
+                // Optional: Display selected file name
+                var output = document.getElementById('output');
+                output.innerHTML = 'Selected file: ' + inputFile.files[0].name;
+            });
+        });
+    </script>
 
     <script>
         // Definir ID do usuário logado ao carregar a página

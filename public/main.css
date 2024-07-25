@@ -23,9 +23,41 @@
     color: #0056b3;
 }
 
+
 /* Estilos para o formulário de publicação */
 #formPublicacao {
+    margin-top: 20px;
     margin-bottom: 20px;
+}
+#formPublicacao .form-group{
+    padding: 8px;
+}
+
+#formPublicacao button{
+    color: white;
+    margin-left: 8px;
+    width: 100px;
+}
+#tituloPublicacao{
+    margin-left: 8px;
+}
+
+.custom-file-input {
+    display: none;
+}
+
+.custom-file-label {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.file-select-image {
+    width: 35px;
+    cursor: pointer;
+    background-color: #007bff;
+    border-radius: 8px;
+    margin-left: 8px;
+    margin-bottom: 8px;
 }
 
 #textoPublicacao {
