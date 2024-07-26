@@ -410,7 +410,7 @@ app.post('/criar-conta', async (req, res) => {
     }
 });
 
-app.post('/excluir-conta', (req, res) => {
+app.post('/excluir-conta', async (req, res) => {
     const id_usuario = req.session.usuario_id;
 
     if (!id_usuario) {
@@ -418,24 +418,34 @@ app.post('/excluir-conta', (req, res) => {
         return;
     }
 
-    const query = 'DELETE FROM usuário WHERE ID_Usuário = ?';
-    conexao.query(query, [id_usuario], (erro, resultados) => {
-        if (erro) {
-            console.error('Erro ao excluir conta: ', erro);
-            res.status(500).send('Erro ao excluir conta');
-        } else {
-            // Limpa a sessão após excluir a conta
-            req.session.destroy((err) => {
-                if (err) {
-                    console.error('Erro ao destruir sessão após excluir conta:', err);
-                    res.status(500).send('Erro ao excluir conta');
-                } else {
-                    res.status(200).send('Conta excluída com sucesso!');
-                }
-            });
-        }
-    });
+    const connection = conexao.promise();
+    const deleteCommentsQuery = `DELETE FROM comentário WHERE ID_Usuário = ?`;
+    const deletePublicationsQuery = `DELETE FROM publicação WHERE ID_Usuário = ?`;
+    const deleteUserQuery = `DELETE FROM usuário WHERE ID_Usuário = ?`;
+
+    try {
+        await connection.query('START TRANSACTION');
+        await connection.query(deleteCommentsQuery, [id_usuario]);
+        await connection.query(deletePublicationsQuery, [id_usuario]);
+        await connection.query(deleteUserQuery, [id_usuario]);
+        await connection.query('COMMIT');
+
+        // Limpa a sessão após excluir a conta
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Erro ao destruir sessão após excluir conta:', err);
+                res.status(500).send('Erro ao excluir conta');
+            } else {
+                res.status(200).send('Conta excluída com sucesso!');
+            }
+        });
+    } catch (error) {
+        await connection.query('ROLLBACK');
+        console.error('Erro ao excluir conta e dados relacionados: ', error);
+        res.status(500).send('Erro ao excluir conta');
+    }
 });
+
 
 app.post('/login-conta', async function(req, res) {
     const { email, password } = req.body;
