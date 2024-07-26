@@ -3,28 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <title>Gerência de Usuários</title>
-    <link rel="stylesheet" href="/public/gerencia.css"> <!-- Adicione seu CSS aqui -->
+    <link rel="stylesheet" href="gerencia.css"> <!-- Adicione seu CSS aqui -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
-    <h1>Gerência de Usuários</h1>
-
-    <!-- Link para a página de denúncias -->
-    <button type="button" class="btn btn-warning" id="link-denuncias">
-        <a href="/denuncias" >Ir para Denúncias</a>
-    </button>
-    
-
-    <ul id="user-list"></ul> <!-- Lista de usuários -->
-
-    <!-- Modal para mostrar publicações -->
-    <div id="publicacoes-modal" style="display: none;">
-        <div id="modal-header">
-            <h2>Publicações do Usuário</h2>
-            <button onclick="fecharModal()">Fechar</button>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Marketing Place</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" href="/main">Página Inicial</a></li>
+                <li class="nav-item"><a class="nav-link" href="/minhasPublicacoes">Minhas Publicações</a></li>
+                <li class="nav-item"><a class="nav-link" href="/perfil">Perfil</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="logout()">Sair</a></li>
+            </ul>
         </div>
-        <div id="modal-content">
-            <ul id="publicacoes-list"></ul>
+    </nav>
+
+    <div class="container mt-4">
+        <h1>Gerência de Usuários</h1>
+
+        <!-- Link para a página de denúncias -->
+        <div class="mb-4 text-right">
+            <button type="button" class="btn btn-warning">
+                <a href="/denuncias" style="color: white; text-decoration: none;">Ir para Denúncias</a>
+            </button>
+        </div>
+
+        <ul id="user-list"></ul> <!-- Lista de usuários -->
+
+        <!-- Modal para mostrar publicações -->
+        <div id="publicacoes-modal">
+            <div id="modal-header">
+                <h2>Publicações do Usuário</h2>
+                <button class="btn btn-danger" onclick="fecharModal()">Fechar</button>
+            </div>
+            <div id="modal-content">
+                <ul id="publicacoes-list"></ul>
+            </div>
         </div>
     </div>
 
@@ -35,9 +54,9 @@
             $.get('/listar-usuarios', function(users) {
                 users.forEach(user => {
                     $('#user-list').append(`
-                        <li>
+                        <li class="d-flex justify-content-between align-items-center">
                             <a href="#" data-id="${user.ID_Usuário}" class="view-publicacoes">${user.Nome}</a>
-                            <button data-id="${user.ID_Usuário}" onclick="bloquearUsuario(${user.ID_Usuário}, ${user.Bloqueado})">${user.Bloqueado ? 'Desbloquear' : 'Bloquear'}</button>
+                            <button class="btn btn-sm ${user.Bloqueado ? 'btn-success' : 'btn-danger'}" data-id="${user.ID_Usuário}" onclick="bloquearUsuario(${user.ID_Usuário}, ${user.Bloqueado})">${user.Bloqueado ? 'Desbloquear' : 'Bloquear'}</button>
                         </li>
                     `);
                 });
@@ -52,11 +71,11 @@
                     $('#publicacoes-list').empty(); // Limpa a lista de publicações
                     publicacoes.forEach(pub => {
                         $('#publicacoes-list').append(`
-                            <li>
+                            <li class="list-group-item">
                                 <strong>${pub.Título}</strong> - 
                                 <small>${new Date(pub.Data_Publicação).toLocaleDateString('pt-BR')}</small><br>
-                                <img src="/uploads/${pub.Imagem}" alt="${pub.Título}" style="max-width: 100%; max-height: 200px;">
-                                <button onclick="excluirPublicacao(${pub.ID_Publicação})">Excluir</button>
+                                <img src="/uploads/${pub.Imagem}" alt="${pub.Título}" class="img-fluid">
+                                <button class="btn btn-danger btn-sm mt-2" onclick="excluirPublicacao(${pub.ID_Publicação})">Excluir</button>
                             </li>
                         `);
                     });
@@ -94,6 +113,7 @@
                         alert(response.message);
                         // Atualiza o botão sem recarregar a página
                         $(`button[data-id="${idUsuario}"]`).text(response.novoEstado ? 'Desbloquear' : 'Bloquear');
+                        $(`button[data-id="${idUsuario}"]`).toggleClass('btn-danger btn-success');
                         $(`button[data-id="${idUsuario}"]`).attr('onclick', `bloquearUsuario(${idUsuario}, ${response.novoEstado})`);
                     } else {
                         alert(response.message);
@@ -104,6 +124,12 @@
             }
         }
 
+        function logout() {
+            // Função para realizar o logout
+            $.post('/logout', function() {
+                window.location.href = '/login';
+            });
+        }
     </script>
 </body>
 </html>

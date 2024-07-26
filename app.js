@@ -563,25 +563,6 @@ app.get('/publicacoes', verificarAutenticacao, async (req, res) => {
 });
 
 
-// Excluir publicação
-app.post('/excluir-publicacao', async (req, res) => {
-    const { idPublicacao } = req.body;
-    
-    try {
-        // Exclui a publicação do banco de dados
-        await db.query('DELETE FROM publicação WHERE ID_Publicação = ?', [idPublicacao]);
-
-        // Mensagem de confirmação
-        const motivo = "Sua publicação foi excluída por um administrador.";
-        
-        res.json({ success: true, message: motivo });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: 'Erro ao excluir a publicação' });
-    }
-});
-
-
 // Rotas para editar dados do usuário
 app.post('/editar-nome', (req, res) => {
     const { nome } = req.body;
@@ -678,6 +659,53 @@ app.post('/editar-senha', async (req, res) => {
         });
     });
 });
+
+//função da pagina minhas publicações
+
+app.post('/editar-titulo', async (req, res) => {
+    const { id, novoTitulo } = req.body;
+    try {
+        const query = `UPDATE publicação SET Título = ? WHERE ID_Publicação = ?`;
+        await conexao.promise().query(query, [novoTitulo, id]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Erro ao atualizar título:', error);
+        res.json({ success: false });
+    }
+});
+
+app.post('/editar-imagem', upload.single('novaImagem'), async (req, res) => {
+    const { id } = req.body;
+    const novaImagem = req.file.filename;
+    try {
+        const query = `UPDATE publicação SET Imagem = ? WHERE ID_Publicação = ?`;
+        await conexao.promise().query(query, [novaImagem, id]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Erro ao atualizar imagem:', error);
+        res.json({ success: false });
+    }
+});
+
+app.post('/excluir-publicacao', async (req, res) => {
+    const { id } = req.body;
+    const connection = conexao.promise();
+    const deleteCommentsQuery = `DELETE FROM comentário WHERE ID_Publicação = ?`;
+    const deletePublicationQuery = `DELETE FROM publicação WHERE ID_Publicação = ?`;
+
+    try {
+        await connection.query('START TRANSACTION');
+        await connection.query(deleteCommentsQuery, [id]);
+        await connection.query(deletePublicationQuery, [id]);
+        await connection.query('COMMIT');
+        res.json({ success: true });
+    } catch (error) {
+        await connection.query('ROLLBACK');
+        console.error('Erro ao excluir publicação e comentários:', error);
+        res.json({ success: false });
+    }
+});
+
 
 
 

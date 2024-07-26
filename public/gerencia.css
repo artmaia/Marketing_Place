@@ -1,122 +1,75 @@
-* {
-    box-sizing: border-box;
+body {
     font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    padding: 0;
 }
 
-body {
-    background-color: #f0f0f0;
-    color: #333;
+
+.navbar-brand {
+    color: #007bff !important;
+}
+
+.nav-link {
+    color: #007bff !important;
 }
 
 h1 {
     text-align: center;
-    margin-bottom: 20px;
-}
-#link-denuncias{
-    margin-left: 20px;
-}
-
-#link-denuncias a{
-    margin-bottom: 20px;
-    color: black;
-    text-decoration: none;
-}
-
-#link-denuncias:hover {
-    text-decoration: underline;
+    margin-bottom: 30px;
 }
 
 #user-list {
     list-style-type: none;
-    border-radius: 10px;
+    padding: 0;
 }
 
 #user-list li {
     padding: 10px;
-    margin-bottom: 10px;
-    background-color: #007bff;
+    background-color: #007bff;;
     border: 1px solid #ddd;
-}
-#user-list li a{
-    color: white;
-}
-#user-list li button{
-    border-radius: 5px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/* Estilos para o modal */
+#user-list li a {
+    text-decoration: none;
+    color: #fff;
+}
+
 #publicacoes-modal {
     display: none;
     position: fixed;
-    top: 50%;
+    z-index: 1000;
     left: 50%;
+    top: 50%;
     transform: translate(-50%, -50%);
     width: 80%;
-    max-width: 800px;
-    max-height: 80vh; /* Define a altura máxima do modal */
-    background-color: white;
-    border: 1px solid #ccc;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    padding: 0;
-    overflow: hidden; /* Impede que o modal se expanda além da altura máxima */
-    z-index: 1000; /* Garante que o modal fique acima dos outros conteúdos */
-    display: flex;
-    flex-direction: column;
+    max-width: 600px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* Contêiner para o título e o botão de fechar */
 #modal-header {
-    position: sticky;
-    top: 0;
-    background-color: white; /* Cor de fundo para o título */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
     border-bottom: 1px solid #ddd;
-    padding: 10px;
-    z-index: 1001; /* Garante que o título fique acima do conteúdo */
+    background-color: #f8f9fa;
 }
 
-/* Estilos para o título e o botão de fechar */
-#modal-header h2 {
-    margin: 0;
-}
-
-#modal-header button {
-    float: right; /* Alinha o botão à direita */
-}
-
-/* Estilos para o conteúdo rolável do modal */
 #modal-content {
-    overflow-y: auto; /* Adiciona rolagem vertical se necessário */
-    flex: 1; /* Faz o conteúdo ocupar o espaço restante do modal */
-    padding: 10px;
-}
-
-#publicacoes-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-#publicacoes-list li {
-    margin-bottom: 15px;
+    padding: 20px;
 }
 
 #publicacoes-list img {
-    max-width: 100%; /* Garante que a imagem não ultrapasse o tamanho do modal */
-    height: auto;
+    display: block;
+    margin: 10px auto;
+    border-radius: 8px;
 }
 
-button {
-    margin-top: 20px;
-}
-
-#link-denuncias {
-    display: inline-block;
-    margin: 20px 0;
-    font-size: 16px;
-    color: #007bff;
-    text-decoration: none;
-}
-
-#link-denuncias:hover {
-    text-decoration: underline;
-}

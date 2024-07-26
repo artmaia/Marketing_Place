@@ -16,28 +16,24 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <div>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/main">Página Inicial</a>
-                    </li> 
-                    <li class="nav-item">
-                        <a class="nav-link" href="/minhasPublicacoes">Minhas Publicações</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/perfil">Perfil</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="logout()">Sair</a>
-                    </li>  
-                </ul>
-            </div>
-            <div>
-                <form class="form-inline my-2 my-lg-0" id="busca">
-                    <input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar">
-                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>
-                </form>
-            </div>
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/main">Página Inicial</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/minhasPublicacoes">Minhas Publicações</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/perfil">Perfil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="logout()">Sair</a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0" id="busca">
+                <input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>
+            </form>
         </div>
     </nav>
 
@@ -47,27 +43,112 @@
     <main>
         <div class="mt-4" id="publicacoes">
             <!-- As publicações serão injetadas aqui -->
-            <script>
-                fetch('/api/publicacoes') 
-                    .then(response => response.json())
-                    .then(publicacoes => {
-                        const container = document.getElementById('publicacoes');
-                        publicacoes.forEach(publicacao => {
-                            const item = document.createElement('div');
-                            item.className = 'publicacao card';
-                            item.innerHTML = `
-                                <h2>${publicacao.Título}</h2>
-                                <img src="/uploads/${publicacao.Imagem}" alt="${publicacao.Título}">
-                                <p>Data: ${new Date(publicacao.Data_Publicação).toLocaleDateString()}</p>
-                            `;
-                            container.appendChild(item);
-                        });
-                    })
-                    .catch(error => console.error('Erro ao carregar publicações:', error));
-            </script>
         </div>
     </main>
     <script>
+        function carregarPublicacoes() {
+            fetch('/api/publicacoes')
+                .then(response => response.json())
+                .then(publicacoes => {
+                    const container = document.getElementById('publicacoes');
+                    container.innerHTML = '';
+                    publicacoes.forEach(publicacao => {
+                        const item = document.createElement('div');
+                        item.className = 'publicacao card';
+                        item.innerHTML = `
+                            <div class="card-body">
+                                <h2 class="card-title">${publicacao.Título}</h2>
+                                <img src="/uploads/${publicacao.Imagem}" alt="${publicacao.Título}" class="card-img-top">
+                                <p class="card-text">Data: ${new Date(publicacao.Data_Publicação).toLocaleDateString()}</p>
+                                <button class="btn btn-primary" onclick="mostrarFormularioEdicao(${publicacao.ID_Publicação}, '${publicacao.Título}')">Editar Título</button>
+                                <button class="btn btn-secondary" onclick="mostrarFormularioImagem(${publicacao.ID_Publicação})">Editar Imagem</button>
+                                <button class="btn btn-danger" onclick="excluirPublicacao(${publicacao.ID_Publicação})">Excluir</button>
+                                <div id="formularioEdicao-${publicacao.ID_Publicação}" class="formulario-edicao" style="display: none;">
+                                    <input type="text" id="novoTitulo-${publicacao.ID_Publicação}" class="form-control" placeholder="Novo Título">
+                                    <button class="btn btn-success mt-2" onclick="editarTitulo(${publicacao.ID_Publicação})">Salvar</button>
+                                </div>
+                                <div id="formularioImagem-${publicacao.ID_Publicação}" class="formulario-edicao" style="display: none;">
+                                    <input type="file" id="novaImagem-${publicacao.ID_Publicação}" class="form-control" accept="image/*">
+                                    <button class="btn btn-success mt-2" onclick="editarImagem(${publicacao.ID_Publicação})">Salvar</button>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(item);
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar publicações:', error));
+        }
+
+        function mostrarFormularioEdicao(id, titulo) {
+            document.getElementById(`formularioEdicao-${id}`).style.display = 'block';
+            document.getElementById(`novoTitulo-${id}`).value = titulo;
+        }
+
+        function mostrarFormularioImagem(id) {
+            document.getElementById(`formularioImagem-${id}`).style.display = 'block';
+        }
+
+        function editarTitulo(id) {
+            const novoTitulo = document.getElementById(`novoTitulo-${id}`).value;
+            fetch(`/editar-titulo`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, novoTitulo })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Título atualizado com sucesso!');
+                    carregarPublicacoes();
+                } else {
+                    alert('Erro ao atualizar título.');
+                }
+            })
+            .catch(error => console.error('Erro ao atualizar título:', error));
+        }
+
+        function editarImagem(id) {
+            const formData = new FormData();
+            const novaImagem = document.getElementById(`novaImagem-${id}`).files[0];
+            formData.append('id', id);
+            formData.append('novaImagem', novaImagem);
+
+            fetch(`/editar-imagem`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Imagem atualizada com sucesso!');
+                    carregarPublicacoes();
+                } else {
+                    alert('Erro ao atualizar imagem.');
+                }
+            })
+            .catch(error => console.error('Erro ao atualizar imagem:', error));
+        }
+
+        function excluirPublicacao(id) {
+            if (confirm('Tem certeza de que deseja excluir esta publicação?')) {
+                fetch(`/excluir-publicacao`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Publicação excluída com sucesso!');
+                        carregarPublicacoes();
+                    } else {
+                        alert('Erro ao excluir publicação.');
+                    }
+                })
+                .catch(error => console.error('Erro ao excluir publicação:', error));
+            }
+        }
+
         function logout() {
             fetch('/logout', {
                 method: 'POST',
@@ -86,6 +167,9 @@
                 alert('Erro na requisição. Por favor, tente novamente mais tarde.');
             });
         }
+
+        // Carrega as publicações ao carregar a página
+        document.addEventListener('DOMContentLoaded', carregarPublicacoes);
     </script>
 </body>
 </html>
