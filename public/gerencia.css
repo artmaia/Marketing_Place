@@ -28,14 +28,20 @@ h1 {
 
 #user-list {
     list-style-type: none;
+    border-radius: 10px;
 }
 
 #user-list li {
     padding: 10px;
     margin-bottom: 10px;
-    color: white;
     background-color: #007bff;
     border: 1px solid #ddd;
+}
+#user-list li a{
+    color: white;
+}
+#user-list li button{
+    border-radius: 5px;
 }
 
 /* Estilos para o modal */
