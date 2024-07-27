@@ -401,12 +401,14 @@ app.post('/criar-conta', async (req, res) => {
 
         if (updateResultados.affectedRows === 0) {
             console.error(`Nenhum registro atualizado para o token: ${token}`);
-            return res.status(400).send(`Nenhum registro atualizado para o token: ${token}`);
+            return res.status(400).json({ success: false, message: `Nenhum registro atualizado para o token: ${token}` });
         }
+
+        res.status(200).json({ success: true });
 
     } catch (erro) {
         console.error('Erro ao completar cadastro: ', erro);
-        res.status(500).send('Erro ao completar cadastro');
+        res.status(500).json({ success: false, message: 'Erro ao completar cadastro' });
     }
 });
 

@@ -12,6 +12,19 @@ footer p a{
     margin: 5px 15px;
 }
 
+.custom-btn {
+  background-color: white;
+  border-color: white;
+  color: black; /* Cor do texto */
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.custom-btn:hover {
+  background-color: #0d6efd; /* Azul claro */
+  border-color: #0d6efd; /* Azul claro */
+  color: white; /* Cor do texto ao passar o cursor */
+}
+
 .loginBody {
     background-color: #f7f9fc;
     display: flex;
