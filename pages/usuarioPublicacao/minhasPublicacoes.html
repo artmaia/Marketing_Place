@@ -108,8 +108,14 @@
         }
 
         function editarImagem(id) {
-            const formData = new FormData();
             const novaImagem = document.getElementById(`novaImagem-${id}`).files[0];
+            
+            if (!novaImagem) {
+                alert('Nenhuma imagem foi selecionada.');
+                return; // Interrompe a função se não houver imagem
+            }
+
+            const formData = new FormData();
             formData.append('id', id);
             formData.append('novaImagem', novaImagem);
 
@@ -121,13 +127,17 @@
             .then(data => {
                 if (data.success) {
                     alert('Imagem atualizada com sucesso!');
-                    carregarPublicacoes();
+                    carregarPublicacoes(); // Atualiza a lista de publicações se necessário
                 } else {
-                    alert('Erro ao atualizar imagem.');
+                    alert(data.mensagem || 'Erro ao atualizar imagem.');
                 }
             })
-            .catch(error => console.error('Erro ao atualizar imagem:', error));
+            .catch(error => {
+                console.error('Erro ao atualizar imagem:', error);
+                alert('Erro na requisição. Por favor, tente novamente mais tarde.');
+            });
         }
+
 
         function excluirPublicacao(id) {
             if (confirm('Tem certeza de que deseja excluir esta publicação?')) {

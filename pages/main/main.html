@@ -14,7 +14,8 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light custom-navbar">
+        <img src="/images/icon-mp.png" alt="logo" width="50">
         <a class="navbar-brand" href="/">Marketing Place</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -29,9 +30,9 @@
                 </ul>
             </div>
             <div>
-                <form class="form-inline ml-auto" id="busca">
+                <form class="form-inline my-2 my-lg-0" id="busca">
                     <input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar">
-                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>
+                    <button class="btn btn-outline-success my-2 my-sm-0 busca" type="submit">Buscar</button>
                 </form>
             </div>
         </div>
@@ -124,25 +125,6 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
-        $(document).ready(function () {
-            // Click on the image triggers the file input click
-            $('.file-select-image').on('click', function () {
-                $('#imagemPublicacao').click();
-            });
-
-            // Update the label text with the file name
-            $('#imagemPublicacao').on('change', function (event) {
-                var inputFile = event.currentTarget;
-                $(inputFile).parent().find('.custom-file-label').html(inputFile.files[0].name);
-                
-                // Optional: Display selected file name
-                var output = document.getElementById('output');
-                output.innerHTML = 'Selected file: ' + inputFile.files[0].name;
-            });
-        });
-    </script>
-
-    <script>
         // Definir ID do usuário logado ao carregar a página
         document.getElementById('id_usuario').value = localStorage.getItem('userId');
 
@@ -201,6 +183,7 @@
                                 <div class="flex-grow-1">
                                     <h5 class="card-title">${pub.Título}</h5>
                                 </div>
+                    
                                 <button class="button-denuncia" onclick="abrirModalDenuncia(${pub.ID_Publicação})">
                                     <i class="bi bi-exclamation-triangle-fill" title="Denunciar"></i>
                                 </button>
@@ -364,6 +347,17 @@
             localStorage.setItem('userId', usuarioData.ID_Usuário); // Certifique-se de usar a chave correta
         });
 
+    </script>
+    <script>
+        // Verificar parâmetros da URL e exibir mensagens de erro
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            if (error) {
+                // Exibir a mensagem de erro. Pode ser substituído por outro método de exibição
+                alert('Erro: ' + error);
+            }
+        });
     </script>
 
     <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

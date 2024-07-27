@@ -1,4 +1,15 @@
 /* Estilos para a barra de navegação */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #daecff !important;
+    padding: 0;
+}
+
+.custom-navbar {
+    background-color: #dfeef7 !important; /* Substitua com a cor desejada */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra leve */
+}
+
 .navbar {
     background-color: #f8f9fa;
     border-bottom: 1px solid #e9ecef;
@@ -90,6 +101,7 @@
     width: 90%; /* Ajuste a largura do card */
     max-width: 500px; /* Largura máxima */
     margin: auto; /* Centraliza o card */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .card-body {
@@ -143,10 +155,10 @@
 }
 
 .button-denuncia {
-    background-color: #fff;
     border: none;
     border-radius: 5px;
-    color: red;
+    color: rgb(255, 255, 22);
+    background-color: #fff;
 }
 
 .close {
@@ -167,4 +179,21 @@
     .card-body {
         height: auto; /* Altera a altura para ajustar em dispositivos menores */
     }
+}
+
+.busca[type="button"],
+.busca[type="submit"] { 
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.busca[type="button"]:hover,
+.busca[type="submit"]:hover {
+    background-color: #0056b3;
 }

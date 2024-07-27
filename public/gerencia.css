@@ -1,9 +1,13 @@
-body {
+body { 
     font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
+    background-color: #daecff !important;
     padding: 0;
 }
 
+.custom-navbar {
+    background-color: #dfeef7 !important; /* Substitua com a cor desejada */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra leve */
+}
 
 .navbar-brand {
     color: #007bff !important;

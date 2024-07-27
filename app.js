@@ -9,7 +9,6 @@ const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const app = express();
 
-
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 
@@ -33,6 +32,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
@@ -41,8 +41,13 @@ app.use(session({
     secret: 'secreto',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }
+    cookie: { 
+        secure: false,
+        httpOnly: true,
+        sameSite: 'Lax'
+    }
 }));
+
 
 async function verificarAutenticacao(req, res, next) {
     const userId = req.session.usuario_id;
@@ -317,12 +322,11 @@ const storage = multer.diskStorage({
 app.post('/atualizar-foto-perfil', upload.single('fotoPerfil'), (req, res) => {
     const id_usuario = req.session.usuario_id;
     if (!id_usuario) {
-        return res.status(401).send('Usuário não autenticado');
+        return res.status(401).json({ mensagem: 'Usuário não autenticado' });
     }
 
-    // Verifica se um arquivo foi enviado
     if (!req.file) {
-        return res.status(400).send('Nenhuma foto enviada');
+        return res.status(400).json({ mensagem: 'Nenhuma foto enviada' });
     }
 
     const foto_perfil = req.file.filename; // Nome do arquivo salvo no servidor
@@ -332,12 +336,14 @@ app.post('/atualizar-foto-perfil', upload.single('fotoPerfil'), (req, res) => {
     conexao.query(updateQuery, [foto_perfil, id_usuario], (err, resultados) => {
         if (err) {
             console.error('Erro ao atualizar foto de perfil:', err);
-            return res.status(500).send('Erro ao atualizar foto de perfil');
+            return res.status(500).json({ mensagem: 'Erro ao atualizar foto de perfil' });
         }
 
+        // Redireciona para o perfil após a atualização
         res.redirect('/perfil');
     });
 });
+
 
 
 // funcionalidades: 
@@ -529,7 +535,7 @@ app.post('/publicar', upload.single('imagem'), (req, res) => {
 
 
         if (!id_usuario || !titulo) {
-            return res.status(400).send('Parâmetros inválidos');
+            return res.redirect('/main?error=parâmetros inválidos');
         }
 
         const inserePublicacaoQuery = 'INSERT INTO publicação (ID_Usuário, Título, Imagem, Data_Publicação, Status) VALUES (?, ?, ?, NOW(), "Ativa")';
@@ -542,7 +548,7 @@ app.post('/publicar', upload.single('imagem'), (req, res) => {
             }
 
             console.log('Publicação criada com sucesso!');
-            res.status(200).send('Publicação criada com sucesso!');
+            res.redirect('/main');
         });
     } catch (erro) {
         console.error('Erro ao processar requisição:', erro);
@@ -688,16 +694,23 @@ app.post('/editar-titulo', async (req, res) => {
 
 app.post('/editar-imagem', upload.single('novaImagem'), async (req, res) => {
     const { id } = req.body;
+
+    if (!req.file) {
+        return res.status(400).json({ mensagem: 'Nenhuma imagem foi enviada.' });
+    }
+
     const novaImagem = req.file.filename;
+
     try {
         const query = `UPDATE publicação SET Imagem = ? WHERE ID_Publicação = ?`;
         await conexao.promise().query(query, [novaImagem, id]);
         res.json({ success: true });
     } catch (error) {
         console.error('Erro ao atualizar imagem:', error);
-        res.json({ success: false });
+        res.json({ success: false, mensagem: 'Erro ao atualizar imagem.' });
     }
 });
+
 
 app.post('/excluir-publicacao', async (req, res) => {
     const { id } = req.body;
