@@ -42,14 +42,14 @@
             <div class="align-self-center">
               <h1 class="display-4">Compartilhe aqui suas habilidades e projetos!</h1>
               <p>Faça parte deste ambiente educacional</p>
-              <form class="mt-4 mb-4" action="/autentication_email" method="post">
+              <form class="mt-4 mb-4" id="emailForm">
                 <div class="input-group">
-                  <input type="email" name="email" placeholder="Seu e-mail" class="form-control">
-                  <div class="input-group-append">
-                    <button type="submit" class="btn btn-primary">Cadastre-se</button>
-                  </div>
+                    <input type="email" name="email" placeholder="Seu e-mail" class="form-control" required>
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary">Cadastre-se</button>
+                    </div>
                 </div>
-              </form>
+            </form>
 
               <p>Disponível para
                 <a href="" class="btn btn-outline-light">
@@ -142,6 +142,29 @@
       </div>
     </footer>
     <!-- Optional JavaScript; choose one of the two! -->
-
+    <script>
+      document.getElementById('emailForm').addEventListener('submit', function(event) {
+          event.preventDefault();
+          const form = event.target;
+          const formData = new FormData(form);
+          const email = formData.get('email');
+  
+          fetch('/autentication_email', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ email: email })
+          })
+          .then(response => response.json())
+          .then(data => {
+              alert(data.message);
+          })
+          .catch(error => {
+              console.error('Erro:', error);
+              alert('Erro ao enviar email de confirmação');
+          });
+      });
+  </script>
   </body>
 </html>

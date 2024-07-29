@@ -86,7 +86,7 @@
         </div>
 
         <form id="excluirForm" action="/excluir-conta" method="POST">
-            <button type="submit" onclick="return confirm('Tem certeza que deseja excluir sua conta?')">Excluir Conta</button>
+            <button type="submit" onclick="return confirmarExclusao()">Excluir Conta</button>
             <button type="button" onclick="abrirEditarSenhaModal()">Mudar Senha</button>
         </form>
     </div>
@@ -156,6 +156,74 @@
             }
         });
 
+        document.getElementById('uploadFotoForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita o envio padrão do formulário
+
+            const fotoPerfilInput = document.getElementById('fotoPerfilInput');
+            const fotoPerfil = fotoPerfilInput.files[0];
+
+            if (!fotoPerfil) {
+                alert('Nenhuma foto selecionada.');
+                return; // Interrompe a função se não houver foto
+            }
+
+            const formData = new FormData();
+            formData.append('fotoPerfil', fotoPerfil);
+
+            fetch('/atualizar-foto-perfil', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include' // Inclui cookies na requisição, se necessário
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.mensagem || 'Erro na requisição. Por favor, tente novamente mais tarde.');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+
+                    location.reload();
+                    
+                } else {
+                    alert(data.mensagem || 'Erro ao atualizar foto de perfil. Tente novamente.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao atualizar foto de perfil:', error);
+                alert(error.message || 'Erro na requisição. Por favor, tente novamente mais tarde.');
+            });
+        });
+
+        document.getElementById('excluirForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        if (confirm('Tem certeza que deseja excluir sua conta?')) {
+            const form = event.target;
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.message === 'Conta excluída com sucesso!') {
+                    window.location.href = '/login'; // Redireciona para a página de login após excluir a conta
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao excluir conta');
+            });
+        }
+    });
+
         function logout() {
             fetch('/logout', {
                 method: 'POST',
@@ -187,59 +255,6 @@
         function fecharEditarSenhaModal() {
             document.getElementById('editarSenhaModal').style.display = 'none';
         }
-
-        document.getElementById('alterarFoto').addEventListener('click', () => {
-            document.getElementById('uploadFotoForm').style.display = 'block';
-        });
-
-        document.getElementById('cancelarUpload').addEventListener('click', () => {
-            document.getElementById('uploadFotoForm').style.display = 'none';
-        });
-
-        document.getElementById('uploadFotoForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Evita o envio padrão do formulário
-
-            const fotoPerfilInput = document.getElementById('fotoPerfilInput');
-            const fotoPerfil = fotoPerfilInput.files[0];
-
-            if (!fotoPerfil) {
-                alert('Nenhuma foto selecionada.');
-                return; // Interrompe a função se não houver foto
-            }
-
-            const formData = new FormData();
-            formData.append('fotoPerfil', fotoPerfil);
-
-            fetch('/atualizar-foto-perfil', {
-                method: 'POST',
-                body: formData,
-                credentials: 'include' // Inclui cookies na requisição, se necessário
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.mensagem || 'Erro na requisição. Por favor, tente novamente mais tarde.');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    // Atualiza a imagem de perfil na página
-                    document.getElementById('fotoPerfil').src = data.novaImagemUrl;
-
-                    // Oculta o formulário
-                    document.getElementById('uploadFotoForm').classList.add('hidden');
-                } else {
-                    alert(data.mensagem || 'Erro ao atualizar foto de perfil. Tente novamente.');
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao atualizar foto de perfil:', error);
-                alert(error.message || 'Erro na requisição. Por favor, tente novamente mais tarde.');
-            });
-        });
-
 
     </script>
 </body>

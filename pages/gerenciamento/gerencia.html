@@ -53,6 +53,7 @@
                 users.forEach(user => {
                     $('#user-list').append(`
                         <li class="d-flex justify-content-between align-items-center">
+                            <img src="/uploads/${user.foto_perfil}" alt="Foto de Perfil" class="foto-perfil-lista">
                             <a href="#" data-id="${user.ID_Usuário}" class="view-publicacoes">${user.Nome}</a>
                             <button class="btn btn-sm ${user.Bloqueado ? 'btn-success' : 'btn-danger'}" data-id="${user.ID_Usuário}" onclick="bloquearUsuario(${user.ID_Usuário}, ${user.Bloqueado})">${user.Bloqueado ? 'Desbloquear' : 'Bloquear'}</button>
                         </li>
@@ -106,7 +107,16 @@
         function bloquearUsuario(idUsuario, bloqueado) {
             const acao = bloqueado ? 'desbloquear' : 'bloquear';
             if (confirm(`Tem certeza de que deseja ${acao} este usuário?`)) {
-                $.post('/bloquear-usuario', { idUsuario: idUsuario, acao: acao }, function(response) {
+                let motivo = '';
+                if (!bloqueado) {
+                    motivo = prompt('Informe o motivo do bloqueio:');
+                    if (!motivo) {
+                        alert('Motivo é obrigatório para bloquear um usuário.');
+                        return;
+                    }
+                }
+
+                $.post('/bloquear-usuario', { idUsuario: idUsuario, acao: acao, motivo: motivo }, function(response) {
                     if (response.success) {
                         alert(response.message);
                         // Atualiza o botão sem recarregar a página
@@ -121,6 +131,7 @@
                 });
             }
         }
+
 
         function logout() {
             // Função para realizar o logout

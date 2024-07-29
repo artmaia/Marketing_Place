@@ -13,7 +13,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
-<body>
+<body> 
     <nav class="navbar navbar-expand-lg navbar-light bg-light custom-navbar"> 
         <img src="/images/icon-mp.png" alt="logo" width="50">
         <a class="navbar-brand" href="/">Marketing Place</a>
@@ -120,6 +120,27 @@
         </div>
     </div>
 
+    <!-- Modal para bloqueio -->
+    <div id="modalBloqueio" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Acesso Bloqueado</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="motivoBloqueio"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -127,6 +148,21 @@
     <script>
         // Definir ID do usuário logado ao carregar a página
         document.getElementById('id_usuario').value = localStorage.getItem('userId');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const userId = window.id_usuario; // Supondo que userID esteja disponível globalmente
+                const response = await fetch(`/status-usuario/${userId}`);
+                const data = await response.json();
+
+                if (data.bloqueado) {
+                    document.getElementById('motivoBloqueio').textContent = data.motivo;
+                    $('#modalBloqueio').modal('show'); // Mostrar o modal usando jQuery
+                }
+            } catch (error) {
+                console.error('Erro ao verificar bloqueio:', error);
+            }
+        });
 
         function logout() {
             fetch('/logout', {
@@ -272,7 +308,7 @@
                     return;
                 }
                 const comentarios = await response.json();
-                console.log('Comentários carregados:', comentarios); // Log para verificar os dados recebidos
+                console.log('Comentários carregados (ordenados):', comentarios); // Log para verificar os dados recebidos
 
                 const listaComentarios = document.getElementById('listaComentariosModal');
                 listaComentarios.innerHTML = '';
@@ -281,10 +317,12 @@
                     const comentarioElement = document.createElement('li');
                     comentarioElement.classList.add('list-group-item');
                     const usuario = comentario.Usuario || 'Usuário desconhecido';
+                    const fotoPerfil = comentario.foto_perfil ? `/uploads/${comentario.foto_perfil}` : '/uploads/default.png'; // caminho da imagem de perfil
                     const conteudo = comentario.Comentario || 'Comentário vazio';
                     const data = comentario.Data_Comentário ? new Date(comentario.Data_Comentário).toLocaleString() : 'Data desconhecida';
 
                     comentarioElement.innerHTML = `
+                        <img src="${fotoPerfil}" alt="Foto de perfil" class="rounded-circle" width="30" height="30">
                         <strong>${usuario}</strong>: ${conteudo}
                         <span class="badge badge-secondary">${data}</span>
                     `;
@@ -294,6 +332,8 @@
                 console.error('Erro ao carregar comentários:', error);
             }
         }
+
+
 
         async function adicionarComentarioModal(event) {
             event.preventDefault();
@@ -327,7 +367,6 @@
                 alert('Erro ao adicionar comentário');
             }
         }
-
 
         function abrirModalComentario(idPublicacao) {
             document.getElementById('idPublicacaoComentarioModal').value = idPublicacao;
