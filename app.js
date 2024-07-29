@@ -193,6 +193,28 @@ app.get('/comentarios/:id_publicacao', (req, res) => {
     });
 });
 
+app.get('/buscar', (req, res) => {
+    const termoBusca = req.query.q; // Obter o termo de busca a partir da query string
+  
+    const query = `
+        SELECT p.*, u.Nome AS Nome_Autor, u.Foto_Perfil
+        FROM publicação p
+        JOIN usuário u ON p.ID_Usuário = u.ID_Usuário
+        WHERE p.Título LIKE ?;
+
+    `;
+  
+    conexao.query(query, [`%${termoBusca}%`], (error, resultados) => {
+      if (error) {
+        console.error('Erro ao buscar publicações:', error);
+        return res.status(500).json({ error: 'Erro ao buscar publicações' });
+      }
+  
+      res.json(resultados);
+    });
+  });
+  
+
 
 
 
@@ -732,6 +754,37 @@ app.post('/excluir-publicacao', async (req, res) => {
         await connection.query('ROLLBACK');
         console.error('Erro ao excluir publicação e comentários:', error);
         res.json({ success: false });
+    }
+});
+
+app.post('/excluir-publicacaoADM', async (req, res) => {
+    const { idPublicacao } = req.body;
+    console.log(`Recebido ID da publicação para exclusão: ${idPublicacao}`);
+
+    const connection = conexao.promise();
+    const deleteCommentsQuery = `DELETE FROM comentário WHERE ID_Publicação = ?`;
+    const deletePublicationQuery = `DELETE FROM publicação WHERE ID_Publicação = ?`;
+
+    try {
+        await connection.query('START TRANSACTION');
+        const [resultComments] = await connection.query(deleteCommentsQuery, [idPublicacao]);
+        console.log(`Comentários excluídos: ${resultComments.affectedRows}`);
+
+        const [resultPublication] = await connection.query(deletePublicationQuery, [idPublicacao]);
+        console.log(`Publicação excluída: ${resultPublication.affectedRows}`);
+
+        await connection.query('COMMIT');
+
+        // Verifique se alguma linha foi realmente excluída
+        if (resultPublication.affectedRows > 0) {
+            res.json({ success: true, message: 'Publicação excluída com sucesso!' });
+        } else {
+            res.json({ success: false, message: 'Nenhuma publicação encontrada com o ID fornecido.' });
+        }
+    } catch (error) {
+        await connection.query('ROLLBACK');
+        console.error('Erro ao excluir publicação e comentários:', error);
+        res.json({ success: false, message: 'Erro ao excluir a publicação.' });
     }
 });
 

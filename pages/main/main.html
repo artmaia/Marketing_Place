@@ -30,10 +30,11 @@
                 </ul>
             </div>
             <div>
-                <form class="form-inline my-2 my-lg-0" id="busca">
-                    <input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar">
+                <form class="form-inline my-2 my-lg-0" id="busca" onsubmit="buscarPublicacoes(event)">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar" id="campoBusca">
                     <button class="btn btn-outline-success my-2 my-sm-0 busca" type="submit">Buscar</button>
                 </form>
+
             </div>
         </div>
     </nav>
@@ -66,6 +67,8 @@
                         <!-- Publicações serão carregadas aqui dinamicamente -->
                     </div>
                 </div>
+
+                
             </div>
         </div>
     </div>
@@ -195,6 +198,29 @@
             }
         }
 
+        async function buscarPublicacoes(event) {
+            event.preventDefault();
+            const termoBusca = document.getElementById('campoBusca').value;
+
+            if (!termoBusca) {
+                alert('Por favor, insira um termo de busca.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/buscar?q=${encodeURIComponent(termoBusca)}`);
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar publicações');
+                }
+                const resultados = await response.json();
+                displayPublicacoes(resultados); // Utilize a mesma função para exibir publicações
+            } catch (error) {
+                console.error('Erro ao buscar publicações:', error);
+                alert('Erro ao buscar publicações');
+            }
+        }
+
+
         function displayPublicacoes(publicacoes) {
             const container = document.getElementById('listaPublicacoes');
             container.innerHTML = '';
@@ -219,7 +245,7 @@
                                 <div class="flex-grow-1">
                                     <h5 class="card-title">${pub.Título}</h5>
                                 </div>
-                    
+                        
                                 <button class="button-denuncia" onclick="abrirModalDenuncia(${pub.ID_Publicação})">
                                     <i class="bi bi-exclamation-triangle-fill" title="Denunciar"></i>
                                 </button>
@@ -243,18 +269,6 @@
                 container.appendChild(pubElement);
             });
         }
-
-        
-
-        // document.addEventListener('DOMContentLoaded', fetchPublicacoes);
-
-        // document.addEventListener('DOMContentLoaded', async () => {
-        //     await fetchPublicacoes();
-        //     const usuarioResponse = await fetch('/api/usuario');
-        //     const usuarioData = await usuarioResponse.json();
-        //     localStorage.setItem('userId', usuarioData.ID_Usuário); // Certifique-se de usar a chave correta
-        // });
-
 
         function abrirModalDenuncia(idPublicacao) {
             document.getElementById('idPublicacaoDenuncia').value = idPublicacao;

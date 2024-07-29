@@ -83,26 +83,35 @@
             });
         });
 
+        function abrirModal() {
+            $('#publicacoes-modal').show(); // Mostra o modal
+        }
+
         function fecharModal() {
             $('#publicacoes-modal').hide(); // Fecha o modal
         }
 
         function excluirPublicacao(idPublicacao) {
             if (confirm('Tem certeza de que deseja excluir esta publicação?')) {
-                $.post('/excluir-publicacao', { idPublicacao: idPublicacao }, function(response) {
-                    if (response.success) {
-                        alert(response.message); // Exibe o motivo da exclusão
-                        $('#publicacoes-modal').hide(); // Fecha o modal após exclusão
-                        // Atualize a lista de publicações ou recarregue a página
-                        // Pode ser necessário recarregar a lista de publicações do usuário
-                    } else {
-                        alert(response.message); // Exibe a mensagem de erro
-                    }
-                }).fail(function() {
-                    alert('Erro ao excluir a publicação');
-                });
+                $.post('/excluir-publicacaoADM', { idPublicacao: idPublicacao })
+                    .done(function(response) {
+                        console.log('Resposta do servidor:', response);
+                        if (response.success) {
+                            alert('Publicação excluída com sucesso!');
+                            $('#publicacoes-modal').hide();
+                            // Atualize a lista de publicações ou recarregue a página
+                        } else {
+                            alert('Erro ao excluir a publicação: ' + response.message);
+                        }
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error('Falha na requisição:', textStatus, errorThrown);
+                        alert('Erro ao excluir a publicação');
+                    });
             }
         }
+
+
 
         function bloquearUsuario(idUsuario, bloqueado) {
             const acao = bloqueado ? 'desbloquear' : 'bloquear';

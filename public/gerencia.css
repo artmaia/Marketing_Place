@@ -43,39 +43,88 @@ h1 {
     color: #fff;
 }
 
-#publicacoes-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 600px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+#publicacoes-list img {
+    display: block;
+    margin: 10px auto;
+    border-radius: 8px;
 }
 
+/* Modal oculto por padrão */
+#publicacoes-modal {
+    display: none; /* Oculta o modal inicialmente */
+    /* (Outras estilizações permanecem aqui) */
+}
+
+
+/* Estilizando o modal */
+#publicacoes-modal {
+    position: fixed; /* Fixa o modal na tela */
+    top: 50%; /* Centraliza verticalmente */
+    left: 50%; /* Centraliza horizontalmente */
+    transform: translate(-50%, -50%); /* Ajusta a posição para o centro */
+    background-color: white; /* Cor de fundo do modal */
+    border: 1px solid #ddd; /* Borda do modal */
+    border-radius: 5px; /* Bordas arredondadas */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra do modal */
+    z-index: 1050; /* Garante que o modal fique acima de outros elementos */
+    width: 80%; /* Largura do modal */
+    max-width: 800px; /* Largura máxima do modal */
+    max-height: 80vh; /* Altura máxima do modal */
+    overflow: hidden; /* Remove o scroll do modal principal */
+}
+
+/* Estilizando o cabeçalho do modal */
 #modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px;
     border-bottom: 1px solid #ddd;
-    background-color: #f8f9fa;
+    background-color: #f7f7f7;
 }
 
+#modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+/* Estilizando o conteúdo do modal */
 #modal-content {
-    padding: 20px;
+    padding: 10px;
+    overflow-y: auto; /* Adiciona scroll vertical ao conteúdo */
+    max-height: calc(80vh - 50px); /* Ajusta a altura para caber dentro da altura máxima do modal */
 }
 
-#publicacoes-list img {
-    display: block;
-    margin: 10px auto;
-    border-radius: 8px;
+/* Estilizando a lista de publicações */
+#publicacoes-list {
+    list-style: none; /* Remove os marcadores da lista */
+    padding: 0;
+    margin: 0;
 }
+
+#publicacoes-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd; /* Linha divisória entre publicações */
+}
+
+#publicacoes-list li:last-child {
+    border-bottom: none; /* Remove a linha divisória do último item */
+}
+
+/* Botão de fechar */
+.btn-danger {
+    background-color: #dc3545; /* Cor de fundo do botão */
+    color: white; /* Cor do texto do botão */
+    border: none; /* Remove a borda padrão do botão */
+    padding: 5px 10px; /* Espaçamento interno do botão */
+    border-radius: 5px; /* Bordas arredondadas do botão */
+    cursor: pointer; /* Muda o cursor ao passar sobre o botão */
+}
+
+.btn-danger:hover {
+    background-color: #c82333; /* Cor de fundo ao passar o mouse */
+}
+
 
 .foto-perfil-lista {
     width: 40px;
