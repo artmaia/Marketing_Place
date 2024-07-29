@@ -3,6 +3,43 @@
     color: white;
 }
 
+body {
+  background-color: #daecff !important;
+  font-family: Arial, sans-serif;
+}
+
+.navbar {
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.navbar-brand:hover {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.navbar-brand img {
+  margin-right: 10px;
+}
+
+.nav-link {
+  color: #007bff;
+}
+
+.nav-link:hover {
+  color: #0056b3;
+}
+
+.custom-btn {
+  margin-left: 20px;
+}
+
+
 .caixa{
     padding: 60px 0;
     border-bottom: 1px solid #e5e5e5;
@@ -14,7 +51,7 @@ footer p a{
 
 .custom-btn {
   background-color: white;
-  border-color: white;
+  border-color: rgb(0, 0, 0);
   color: black; /* Cor do texto */
   transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }

@@ -1,7 +1,13 @@
 
-.navbar {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+body {
+    font-family: Arial, sans-serif;
+    background-color: #daecff !important; 
+    padding: 0;
+}
+
+.custom-navbar {
+    background-color: #dfeef7 !important; /* Substitua com a cor desejada */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra leve */
 }
 
 .navbar-brand {
@@ -19,6 +25,11 @@
 }
 
 .navbar-nav .nav-link:hover {
+    color: #0056b3;
+}
+
+.navbar-brand:hover {
+    font-weight: bold;
     color: #0056b3;
 }
 
@@ -40,7 +51,9 @@
 h1 {
     text-align: center;
     margin-bottom: 20px;
-    color: #333;
+    color: #007bff;
+    font-size: 2rem;
+    font-weight: bold;
 }
 
 .form-group {

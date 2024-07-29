@@ -1,12 +1,23 @@
 /* Estilos para a barra de navegação */
-.navbar {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+body {
+    font-family: Arial, sans-serif;
+    background-color: #daecff !important; 
+    padding: 0;
+}
+
+.custom-navbar {
+    background-color: #dfeef7 !important; /* Substitua com a cor desejada */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra leve */
 }
 
 .navbar-brand {
     font-weight: bold;
     color: #007bff;
+}
+
+.navbar-brand:hover {
+    font-weight: bold;
+    color: #0056b3;
 }
 
 #navbarNav {
@@ -89,7 +100,7 @@ button[type="submit"] {
 button[type="button"]:hover,
 button[type="submit"]:hover {
     background-color: #0056b3;
-}
+} 
 
 /* Estilos para responsividade */
 @media (max-width: 768px) {

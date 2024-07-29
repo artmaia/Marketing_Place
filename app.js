@@ -122,6 +122,10 @@ app.get('/login', (req, res) => {
    res.sendFile(path.join(__dirname, 'pages/login/login2.html'));
 });
 
+app.get('/sobre', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pages/sobre/sobre.html'));
+ });
+
 app.get('/usuario', (req, res) => {
    res.sendFile(path.join(__dirname, 'pages/Usuario/Usuario.html'));
 });
@@ -458,60 +462,57 @@ app.post('/excluir-conta', async (req, res) => {
 app.post('/login-conta', async function(req, res) {
     const { email, password } = req.body;
 
-    console.log('Corpo da requisição:', req.body); // Adiciona log para depuração
-    console.log('Email recebido:', email); // Verifica o email recebido
-    console.log('Password recebido:', password); // Verifica a senha recebida
+    console.log('Corpo da requisição:', req.body);
+    console.log('Email recebido:', email);
+    console.log('Password recebido:', password);
 
     try {
         if (!email || !password) {
-            console.log('Email ou senha não fornecidos'); // Adiciona log para email ou senha ausentes
-            return res.status(400).send('Email ou senha não fornecidos');
+            console.log('Email ou senha não fornecidos');
+            return res.status(400).json({ success: false, message: 'Email ou senha não fornecidos' });
         }
 
-        // Verificar se o email pertence a um administrador
         const [adminResults] = await conexao.promise().query('SELECT * FROM administrador WHERE Email = ?', [email.trim()]);
         if (adminResults.length > 0) {
             const admin = adminResults[0];
-            console.log('Administrador encontrado:', admin); // Verifica o administrador encontrado
+            console.log('Administrador encontrado:', admin);
 
-            // Comparar a senha diretamente, sem criptografia
             if (password === admin.Senha) {
                 req.session.admin_id = admin.ID_Administrador;
-                console.log('ID do administrador na sessão:', req.session.admin_id); // Verifica se o ID do administrador está sendo armazenado corretamente
-                return res.redirect('/gerencia'); // Redireciona para o painel do administrador
+                console.log('ID do administrador na sessão:', req.session.admin_id);
+                return res.json({ success: true, redirect: '/gerencia' });
             } else {
-                console.log('Senha incorreta para administrador'); // Adiciona log para senha incorreta
-                return res.status(401).send('Credenciais inválidas: Senha incorreta.');
+                console.log('Senha incorreta para administrador');
+                return res.status(401).json({ success: false, message: 'Credenciais inválidas: Senha incorreta.' });
             }
         }
 
-        // Se não for um administrador, verificar como um usuário comum
         const [userResults] = await conexao.promise().query('SELECT * FROM usuário WHERE Email = ?', [email.trim()]);
         if (userResults.length > 0) {
             const usuario = userResults[0];
-            console.log('Usuário encontrado:', usuario); // Verifica o usuário encontrado
+            console.log('Usuário encontrado:', usuario);
 
-            // Comparar a senha usando bcrypt
             const senhaValida = await bcrypt.compare(password, usuario.Senha);
-            console.log('Senha válida para usuário:', senhaValida); // Verifica a comparação de senha
+            console.log('Senha válida para usuário:', senhaValida);
 
             if (senhaValida) {
                 req.session.usuario_id = usuario.ID_Usuário;
-                console.log('ID do usuário na sessão:', req.session.usuario_id); // Verifica se o ID do usuário está sendo armazenado corretamente
-                return res.redirect('/main'); // Redireciona para a página principal do usuário
+                console.log('ID do usuário na sessão:', req.session.usuario_id);
+                return res.json({ success: true, redirect: '/main' });
             } else {
-                console.log('Senha incorreta para usuário'); // Adiciona log para senha incorreta
-                return res.status(401).send('Credenciais inválidas: Senha incorreta.');
+                console.log('Senha incorreta para usuário');
+                return res.status(401).json({ success: false, message: 'Credenciais inválidas: Senha incorreta.' });
             }
         }
 
-        console.log('Email não encontrado para administrador ou usuário'); // Adiciona log para email não encontrado
-        res.status(401).send('Credenciais inválidas: Email não encontrado.');
+        console.log('Email não encontrado para administrador ou usuário');
+        res.status(401).json({ success: false, message: 'Credenciais inválidas: Email não encontrado.' });
     } catch (error) {
         console.error('Erro ao verificar credenciais:', error);
-        res.status(500).send('Erro ao processar o login.');
+        res.status(500).json({ success: false, message: 'Erro ao processar o login.' });
     }
 });
+
 
 app.post('/logout', (req, res) => {
     req.session.destroy(err => {

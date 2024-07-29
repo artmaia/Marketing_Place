@@ -16,7 +16,7 @@
       <div class="content-box">
         <div class="form-box">
           <h2>Login</h2>
-          <form action="login-conta" method="post">
+          <form id="loginForm" action="login-conta" method="post">
             <div class="input-box">
               <span>Username</span>
               <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" placeholder="Seu email">
@@ -40,5 +40,48 @@
         </div>
       </div>
     </div>
+
+    <script>
+      document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Impede o envio do formulário para poder fazer a verificação
+
+        // Obter valores dos campos
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        // Verificações básicas (exemplo simples, para testes apenas)
+        if (email === '' || password === '') {
+            alert('Por favor, preencha todos os campos.');
+            return;
+        }
+
+        // Enviar dados para o servidor
+        fetch('/login-conta', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'email': email,
+                'password': password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Redirecionar com base na resposta do servidor
+                window.location.href = data.redirect;
+            } else {
+                // Mostrar mensagem de erro
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Ocorreu um erro ao tentar fazer login. Tente novamente.');
+        });
+    });
+
+    </script>
 </body>
 </html>
