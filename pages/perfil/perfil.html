@@ -81,8 +81,8 @@
             </div>
         </div>
 
-        <form id="excluirForm" action="/excluir-conta" method="POST">
-            <button type="submit" onclick="return confirmarExclusao()">Excluir Conta</button>
+        <form id="excluirForm" method="POST">
+            <button type="submit">Excluir Conta</button>
             <button type="button" onclick="abrirEditarSenhaModal()">Mudar Senha</button>
         </form>
     </div>
@@ -195,30 +195,31 @@
         });
 
         document.getElementById('excluirForm').addEventListener('submit', function(event) {
-        event.preventDefault();
+            event.preventDefault();
 
-        if (confirm('Tem certeza que deseja excluir sua conta?')) {
-            const form = event.target;
+            if (confirm('Tem certeza que deseja excluir sua conta?')) {
+                const idUsuario = localStorage.getItem('userId'); // Obtendo o idUsuario do localStorage
 
-            fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                if (data.message === 'Conta excluída com sucesso!') {
-                    window.location.href = '/login'; // Redireciona para a página de login após excluir a conta
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao excluir conta');
-            });
-        }
-    });
+                fetch('/excluir-conta', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ idUsuario }) // Enviar idUsuario no corpo da requisição
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.message === 'Conta excluída com sucesso!') {
+                        window.location.href = '/login'; // Redireciona para a página de login após excluir a conta
+                    }
+                }).catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao excluir conta');
+                });
+            }
+        });
+
 
         function logout() {
             fetch('/logout', {

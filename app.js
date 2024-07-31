@@ -446,24 +446,66 @@ app.post('/criar-conta', async (req, res) => {
     }
 });
 
-app.post('/excluir-conta', async (req, res) => {
-    const id_usuario = req.session.usuario_id;
+// app.post('/excluir-conta', async (req, res) => {
+//     const { idUsuario } = req.body; // Supondo que o ID do usuário seja enviado no corpo da solicitação
+//     const connection = conexao.promise();
 
-    if (!id_usuario) {
+//     const deleteCommentsQuery = `
+//         DELETE c FROM comentário c
+//         JOIN publicação p ON c.ID_Publicação = p.ID_Publicação
+//         WHERE p.ID_Usuário = ?
+//     `;
+//     const deletePublicationsQuery = `DELETE FROM publicação WHERE ID_Usuário = ?`;
+//     const deleteUserQuery = `DELETE FROM usuário WHERE ID_Usuário = ?`;
+
+//     try {
+//         await connection.query('START TRANSACTION');
+
+//         // Exclui comentários relacionados às publicações do usuário
+//         await connection.query(deleteCommentsQuery, [idUsuario]);
+
+//         // Exclui publicações do usuário
+//         await connection.query(deletePublicationsQuery, [idUsuario]);
+
+//         // Exclui a conta do usuário
+//         await connection.query(deleteUserQuery, [idUsuario]);
+
+//         await connection.query('COMMIT');
+//         res.json({ success: true });
+//     } catch (error) {
+//         await connection.query('ROLLBACK');
+//         console.error('Erro ao excluir conta e dados relacionados:', error);
+//         res.json({ success: false, message: 'Erro ao excluir conta e dados relacionados.' });
+//     }
+// });
+
+app.post('/excluir-conta', async (req, res) => {
+    const { idUsuario } = req.body;
+
+    if (!idUsuario) {
         res.status(401).json({ message: 'Usuário não autenticado' });
         return;
     }
 
     const connection = conexao.promise();
-    const deleteCommentsQuery = `DELETE FROM comentário WHERE ID_Usuário = ?`;
+    const deleteReportsQuery = `DELETE FROM denúncia WHERE ID_Publicação IN (SELECT ID_Publicação FROM publicação WHERE ID_Usuário = ?)`;
+    const deleteCommentsQuery = `DELETE FROM comentário WHERE ID_Publicação IN (SELECT ID_Publicação FROM publicação WHERE ID_Usuário = ?)`;
     const deletePublicationsQuery = `DELETE FROM publicação WHERE ID_Usuário = ?`;
+    const deleteBlockQuery = `DELETE FROM bloqueio_usuario WHERE ID_Usuário = ?`;
     const deleteUserQuery = `DELETE FROM usuário WHERE ID_Usuário = ?`;
 
     try {
         await connection.query('START TRANSACTION');
-        await connection.query(deleteCommentsQuery, [id_usuario]);
-        await connection.query(deletePublicationsQuery, [id_usuario]);
-        await connection.query(deleteUserQuery, [id_usuario]);
+        // Excluir denúncias relacionadas às publicações do usuário
+        await connection.query(deleteReportsQuery, [idUsuario]);
+        // Excluir comentários relacionados às publicações do usuário
+        await connection.query(deleteCommentsQuery, [idUsuario]);
+        // Excluir publicações do usuário
+        await connection.query(deletePublicationsQuery, [idUsuario]);
+        // Excluir bloqueios do usuário
+        await connection.query(deleteBlockQuery, [idUsuario]);
+        // Excluir usuário
+        await connection.query(deleteUserQuery, [idUsuario]);
         await connection.query('COMMIT');
 
         // Limpa a sessão após excluir a conta
@@ -481,7 +523,6 @@ app.post('/excluir-conta', async (req, res) => {
         res.status(500).json({ message: 'Erro ao excluir conta' });
     }
 });
-
 
 
 app.post('/login-conta', async function(req, res) {
