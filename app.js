@@ -804,13 +804,21 @@ app.post('/excluir-publicacaoADM', async (req, res) => {
 
     const connection = conexao.promise();
     const deleteCommentsQuery = `DELETE FROM comentário WHERE ID_Publicação = ?`;
+    const deleteDenunciasQuery = `DELETE FROM denúncia WHERE ID_Publicação = ?`;
     const deletePublicationQuery = `DELETE FROM publicação WHERE ID_Publicação = ?`;
 
     try {
         await connection.query('START TRANSACTION');
+
+        // Excluir comentários associados à publicação
         const [resultComments] = await connection.query(deleteCommentsQuery, [idPublicacao]);
         console.log(`Comentários excluídos: ${resultComments.affectedRows}`);
 
+        // Excluir denúncias associadas à publicação
+        const [resultDenuncias] = await connection.query(deleteDenunciasQuery, [idPublicacao]);
+        console.log(`Denúncias excluídas: ${resultDenuncias.affectedRows}`);
+
+        // Excluir a publicação
         const [resultPublication] = await connection.query(deletePublicationQuery, [idPublicacao]);
         console.log(`Publicação excluída: ${resultPublication.affectedRows}`);
 
@@ -818,17 +826,16 @@ app.post('/excluir-publicacaoADM', async (req, res) => {
 
         // Verifique se alguma linha foi realmente excluída
         if (resultPublication.affectedRows > 0) {
-            res.json({ success: true, message: 'Publicação excluída com sucesso!' });
+            res.json({ success: true, message: 'Publicação e todas as suas referências excluídas com sucesso!' });
         } else {
             res.json({ success: false, message: 'Nenhuma publicação encontrada com o ID fornecido.' });
         }
     } catch (error) {
         await connection.query('ROLLBACK');
-        console.error('Erro ao excluir publicação e comentários:', error);
+        console.error('Erro ao excluir publicação e suas referências:', error);
         res.json({ success: false, message: 'Erro ao excluir a publicação.' });
     }
 });
-
 
 
 
