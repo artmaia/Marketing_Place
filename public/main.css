@@ -1,13 +1,13 @@
 /* Estilos para a barra de navegação */
 body {
     font-family: Arial, sans-serif;
-    background-color: #daecff !important; 
+    background-color: #daecff !important;
     padding: 0;
 }
 
 .custom-navbar {
-    background-color: #dfeef7 !important; /* Substitua com a cor desejada */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra leve */
+    background-color: #dfeef7 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .navbar {
@@ -18,12 +18,6 @@ body {
 .navbar-brand {
     font-weight: bold;
     color: #007bff;
-}
-
-#navbarNav {
-    display: flex;
-    justify-content: space-around;
-
 }
 
 .navbar-brand:hover {
@@ -39,6 +33,40 @@ body {
     color: #0056b3;
 }
 
+/* Estilos para responsividade */
+@media (max-width: 768px) {
+    .navbar-collapse {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .navbar-nav {
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+    }
+    .navbar-nav .nav-item {
+        width: 100%;
+        text-align: center;
+    }
+    .navbar-nav .nav-link {
+        padding: 10px 0;
+    }
+    #busca {
+        margin-top: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+/* Outros estilos */
+#navbarNav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
 .row {
     display: flex;
     justify-content: center;
@@ -52,22 +80,23 @@ body {
     margin-right: 10px;
 }
 
-
 /* Estilos para o formulário de publicação */
 #formPublicacao {
     margin-top: 20px;
     margin-bottom: 20px;
 }
-#formPublicacao .form-group{
+
+#formPublicacao .form-group {
     padding: 8px;
 }
 
-#formPublicacao button{
+#formPublicacao button {
     color: white;
     margin-left: 8px;
     width: 100px;
 }
-#tituloPublicacao{
+
+#tituloPublicacao {
     margin-left: 8px;
 }
 
@@ -89,7 +118,7 @@ body {
     margin-bottom: 8px;
 }
 
-.file-select-image:hover { 
+.file-select-image:hover {
     cursor: pointer;
     background-color: #0056b3;
 }
@@ -99,7 +128,6 @@ body {
 }
 
 /* Estilos para a lista de publicações */
-/* Estilos para a página de publicações */
 #listaPublicacoes {
     display: flex;
     flex-direction: column;
@@ -108,35 +136,33 @@ body {
 }
 
 .card {
-    width: 90%; /* Ajuste a largura do card */
-    max-width: 500px; /* Largura máxima */
-    margin: auto; /* Centraliza o card */
+    width: 90%;
+    max-width: 500px;
+    margin: auto;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .card-body {
-    padding: 15px; /* Diminui o padding interno */
+    padding: 15px;
 }
 
 .card img {
-    max-height: 350px; /* Ajuste conforme necessário */
-    width: 100%; /* Garante que a imagem ocupe toda a largura do card */
-    object-fit: contain; /* Mantém a proporção da imagem sem cortar */
+    max-height: 350px;
+    width: 100%;
+    object-fit: contain;
     border-radius: 8px;
 }
-
 
 .card:hover {
     transform: translateY(-5px);
 }
 
-
 .card-title {
-    font-size: 1.25rem; /* Tamanho do título */
+    font-size: 1.25rem;
 }
 
 .card-text {
-    font-size: 0.85rem; /* Tamanho do texto */
+    font-size: 0.85rem;
 }
 
 .btn-primary {
@@ -184,15 +210,8 @@ body {
     justify-content: space-between;
 }
 
-/* Estilos para responsividade */
-@media (max-width: 768px) {
-    .card-body {
-        height: auto; /* Altera a altura para ajustar em dispositivos menores */
-    }
-}
-
 .busca[type="button"],
-.busca[type="submit"] { 
+.busca[type="submit"] {
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
@@ -211,4 +230,3 @@ body {
 .rounded-circle {
     border-radius: 50%;
 }
-
